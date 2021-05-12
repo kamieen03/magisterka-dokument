@@ -1,0 +1,101 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{placeins}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{fontspec}
+\setmainfont{URW Palladio L}
+\linespread{1.05}         % Palladio needs more leading (space between lines)
+
+\usepackage[style=numeric,backend=bibtex]{biblatex}
+\bibliography{temp}
+
+
+\includeonly{
+    contents/1-introduction,
+    contents/2-theoretical-background,
+    contents/3-symmetry-implementation,
+    contents/4-experiments
+}
+
+\listfiles
+\newtheorem*{prop}{Proposition}
+
+\begin{document}
+%--------------------------------------
+% Strona tytułowa
+%--------------------------------------
+%\frontmatter
+\begin{titlepage}
+   \begin{center}
+       \vspace*{0.5cm}
+POZNAŃ UNIVERSITY OF TECHNOLOGY \\
+FACULTY OF COMPUTING AND TELECOMMUNICATIONS \\
+       INSTITUE OF COMPUTING \\
+
+       \vspace*{2cm}
+       {\Large MASTER THESIS} \\
+
+       \vspace*{1cm}
+       \textbf{\Huge Thesis Title}  \normalfont \\
+
+       \vspace{5cm}
+       \begin{doublespace}
+       Author: \\
+       {\Large Kamil Burdziński} \\
+       \end{doublespace}
+       \vspace{4cm}
+       \begin{doublespace}
+       Tutor:\\
+       {\Large dr hab. inż. Wojciech Kotłowski}
+       \end{doublespace}
+   \end{center}
+\end{titlepage}
+
+% Front matter starts here
+\pagestyle{empty}%
+\cleardoublepage%
+
+%--------------------------------------
+% Dedication page
+%--------------------------------------
+
+\thispagestyle{empty}
+\vspace*{\fill}%
+\vspace{17cm}
+\begin{flushright}
+\textit{Dedication page}
+\end{flushright}
+\vfill\cleardoublepage%
+
+% -- table of contents --
+\tableofcontents
+
+\cleardoublepage % Zaczynamy od nieparzystej strony
+
+% --- Main Document --- --- --- --- --- --- ---
+%
+%\mainmatter
+\include{contents/1-introduction}
+\include{contents/2-theoretical-background}
+\include{contents/3-symmetry-implementation}
+\include{contents/4-experiments}
+
+% -- bibliography --
+\printbibliography
+
+%% -- list of figures and tables --
+\clearpage
+\listoffigures
+\listoftables
+
+\end{document}
+

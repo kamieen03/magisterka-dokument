@@ -1,0 +1,177 @@
+\chapter{Theoretical background}
+
+\section{Group theory}
+    \subsection{Group}
+    \textbf{Group} $G$ is a set together with binary operation $\left(G, \bullet \right)$ satisfying
+    following axioms:
+    \begin{enumerate}
+        \item Closure: for any $g, h \in G$, $g \bullet h \in G$
+        \item Associativity:  $g\bullet \left(h \bullet j \right) = 
+                    \left(g \bullet h \right) \bullet j$ for any $g,h,j \in G$
+        \item Identity: there exists a neutral element $e$ such that 
+                $e \bullet g = g \bullet e = g$ for any $g \in G$
+        \item Inverse element: for every $g \in G$ exists element $h \in G$ such that
+                $g \bullet h = h\bullet g = e$. The element inverse to $g$ is usually
+                written as $g^{-1}$
+    \end{enumerate}
+    \par Group $G$ might also posses additional structure. A \textbf{topological group} 
+        is a group together with a topology on G, such that $G$'s binary operation:\\
+        \hspace*{0.5cm} $\bullet: G \times G \to G, \left(g,h \right) \mapsto g\bullet h$ \\
+        and inversion map: \\
+        \hspace*{0.5cm} ${}^{-1}: G \to G, g \mapsto g^{-1}$ \\
+        are continuous. Additionally if the underlying topological structure
+        is some smooth n-manifold and both maps are smooth, the group is called
+        \textbf{Lie group}. Familiar examples of Lie groups include translation group
+        $\left( \mathbb{R}^n, + \right)$ - set of real vectors with addition or
+        $\left(GL(n,\mathbb{R}), \cdot \right)$ - set of real $n \times n$ matrices of nonzero determinant
+        with multiplication.
+
+    \subsection{Group action}
+        Given a group $G$ and set $X$ we define a \textbf{group action} of $G$ on $X$ as
+        a function
+        \begin{equation}
+            \theta: G \times X \to X
+        \end{equation}
+        (with $\theta(g,x)$ often written as $g\cdot x$) satisfying following axioms:
+        \begin{enumerate}
+            \item Identity: $e \cdot x = x$ for every $x \in X$, where $e$ is the neutral element
+                    of $G$ 
+            \item Compatibility: $g \cdot \left(h \cdot x\right) = 
+                \left(g \bullet h \right) \cdot x$ for all $g$ and $h$ in $G$ and $x$ in $X$
+        \end{enumerate}
+        The simplest possible group action is the trivial group action, that is 
+        $g\cdot x = x$ for any $g$ and $x$. Familiar nontrivial examples include isometries
+        of $\mathbb{R}^n$, e.g.
+        translations - action of $\left(\mathbb{R}^n,+\right)$ given by $v \cdot x = v+x$ or
+        rotations - action of $SO(n,\mathbb{R})$ given by $r \cdot x = Rx$ where
+        $R$ is matrix representation of rotation and
+        multiplication on the right is matrix-vector multiplication.
+
+\section{Equivariant and invariant neural networks}
+    \subsection{Equivariant and invariant maps}
+    \hspace{0.5cm}
+     Key properties of neural networks in regard to group actions are equivariance and invariance.
+        These can be abstractly defined as follows: \par
+        Let group $G$ act on sets $X$ and $Y$. We call function $f: X \rightarrow Y$ equivariant
+        with respect to action of $G$ if for all $g \in G$
+        \begin{equation}
+            f(g \cdot x) = g \cdot f(x)
+        \end{equation}
+        In turn, we call $f$ invariant with respect to action of $G$ if for all $g \in G$
+        \begin{equation}
+            f(g \cdot x) = f(x)
+        \end{equation}
+        In fact invariance is a special case of equivariance where action of $G$ on $Y$ is trivial.
+        It's however conceptually cleaner to make distinction between both properties.\\
+        Intuitively equivariance tells us that when input changes, the output changes accordingly
+        and invariance -- that action of G has no effect on output.\par
+            If we want to construct a neural network $\mathcal{N}$ equivariant to some
+        specified group action, we need to make sure each of it's layers is equivariant.
+        If we treat $\mathcal{N}$ as a series of functions $f_0,f_1,...,f_n$, then
+        \begin{align*}
+            & \mathcal{N}(g \cdot x) = \\
+            & f_n \circ f_{n-1} \circ ... \circ f_1 \circ f_0(g\cdot x) =  \\
+            & f_n \circ f_{n-1} \circ ... \circ f_1 \circ \left( g \cdot f_0(x) \right) = \\
+            & \cdots = \\
+            & g \cdot f_n \circ f_{n-1} \circ ... \circ f_1 \circ f_0(x) = \\
+            & g \cdot \mathcal{N}(x)
+        \end{align*}
+        where $g\cdot x$ is the action of $g$ on $x$. Often we don't want the network
+        to be fully equivariant; the desired extent of equivariance depends on the task.
+        For problems of image-to-image type like segmentation full equivariance is desirable.
+        However for problems where the more and more squished in consecutive layers,
+        we need to break equivariance at some point. Like for example in classification,
+        final layers are often fully connected and not equivariant. \par
+        The easiest way to assert the network is invariant to some transformation
+        is making it's very first layer $f_0$ invariant, then:
+        \begin{align*}
+            & \mathcal{N}(g\cdot x) = \\
+            & f_n \circ f_{n-1} \circ ... \circ f_1 \circ f_0(g\cdot x) =  \\
+            & f_n \circ f_{n-1} \circ ... \circ f_1 \circ f_0(x) = \\
+            & \mathcal{N}(x)
+        \end{align*}
+        Equivalently one cam make the couple first layers equivariant and a single invariant
+        following them. For example if $f_0$ is equivariant and $f_1$ invariant:
+        \begin{align*}
+            & \mathcal{N}(g\cdot x) = \\
+            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x) =  \\
+            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ \left( g \cdot f_0(x) \right) = \\
+            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) = \\
+            & \mathcal{N}(x)
+        \end{align*}
+
+    \subsection{GCNN}
+
+\section{Image symmetries}
+    In this section we define and generalize operators changing contrast, brightness
+    and color balance on image where ``image'' is an array of floating point numbers
+    in range $\left[0;1\right]$ of shape $\left(3, H, W\right)$.
+    \subsection{Contrast}
+    \newcommand\mcc{\mathcal{C}}
+    {\color{blue} 
+        The usual formula for changing image's contrast by factor of $a$ is
+        $$ \mathcal{C}_a(X) = \mathit{CLIP}\left(a\cdot X + (1-a) \cdot \mu_X\right) $$
+        where $\mathit{CLIP}$ is function clipping values to $\left[0;1\right]$ range
+        and $\mu_X$ is average value of image. However working with values clipped
+        to $\left[0;1\right]$ at all times would make training a neural network
+        a lot harder and significantly diminish it's performance. To avoid these effects
+        we give up on clipping values, so the adopted formula for changing contrast is following:
+        \begin{equation}
+            \label{contrast}
+            \mathcal{C}_a(x) = a x + (1-a) \mu_x
+        \end{equation}
+
+        This operator possesses a number of interesting properties:
+        \begin{itemize}
+            \item $\mathcal{C}_a$ is linear operator on vector space of images of fixed size:
+                \begin{align*}
+                    & \mathcal{C}_a(x+y) = 
+                    a(x+y) + (1-a)\mu_{x+y} = 
+                    ax + ay +(1-a)\mu_x +(1-a)\mu_y = 
+                \mathcal{C}_a(x) + \mathcal{C}_a(y) \\
+                    & \mathcal{C}_a(\lambda x) = a\lambda x + (1-a)\mu_{\lambda x} = 
+                    \lambda ax + (1-a)\lambda\mu_x = \lambda(ax + (1-a)\mu_x) = 
+                    \lambda \mathcal{C}_a(x)
+                \end{align*}
+
+            \item Under map composition set
+                $\mathcal{C} = \left\{\mathcal{C}_a | a\in \mathbb{R}_+\right\}$ 
+                forms a Lie group isomorphic to $\left(R_+,\cdot \right)$:
+                \begin{enumerate}
+                    \item Closure:\\
+                        $\mathcal{C}_a\circ \mathcal{C}_b(x) = 
+                \mathcal{C}_a(bx + (1-b)\mu_x) = 
+                abx + a(1-b)\mu_x + (1-a)\mu_{bx+(1-b)\mu_x} =
+                abx + a(1-b)\mu_x + (1-a)b\mu_x + (1-a)(1-b)\mu_x=
+                abx + (1-ab)\mu_x =
+                \mathcal{C}_{ab}(x)$
+                    \item Associativity:\\
+                        $ \mcc_a \circ(\mcc_b \circ \mcc_c(x)) = 
+                            \mcc_a(\mcc_{bc}(x)) = \mcc_{abc}(x) = 
+                                \mcc_{ab}\circ\mcc_c(x) = (\mcc_a \circ \mcc_b) \circ\mcc_c(x)$
+                    \item Identity:\\
+                        $\mcc_1\circ\mcc_a(x) = \mcc_a\circ\mcc_1(x) = 
+                            \mcc_a(x)$
+                    \item Inverse element:\\
+                        $\mcc_a\circ\mcc_{a^{-1}}(x) = \mcc_{a^{-1}}\circ\mcc_a(x) = \mcc_1(x)$
+                \end{enumerate}
+                The homomorphism is simply $h: \mcc_a \mapsto a$
+                $$ h(\mcc_a)h(\mcc_b) = ab = h(\mcc_b)$$
+                It is bijective so it's isomorphism.
+                
+            \item Equation \ref{contrast} defines a group action of $\mcc$ on space of images:
+                $\mcc_1 \cdot x = 1x + (1-1)\mu_x = x$ and checking the compatibility axiom
+                is the same as checking the closure axiom above.
+            \item $\mcc_n$ increases standard deviation of image $n$ times:\\
+                $\sigma(\mcc_n(x)) = \sigma(nx + (1-n)\mu_x) = \sigma(nx) = n\sigma(x)$
+        \end{itemize}
+
+        
+    }
+
+    \subsection{Brightness}
+    xx
+    \subsection{Color balance}
+
+
+
