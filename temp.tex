@@ -16,7 +16,8 @@
 \linespread{1.05}         % Palladio needs more leading (space between lines)
 
 \usepackage[style=numeric,backend=bibtex]{biblatex}
-\bibliography{temp}
+\addbibresource{temp.bib}
+\graphicspath{ {./images/} }
 
 
 \includeonly{
@@ -27,7 +28,6 @@
 }
 
 \listfiles
-\newtheorem*{prop}{Proposition}
 
 \begin{document}
 %--------------------------------------
@@ -61,7 +61,6 @@ FACULTY OF COMPUTING AND TELECOMMUNICATIONS \\
 \end{titlepage}
 
 % Front matter starts here
-\pagestyle{empty}%
 \cleardoublepage%
 
 %--------------------------------------
@@ -78,12 +77,13 @@ FACULTY OF COMPUTING AND TELECOMMUNICATIONS \\
 
 % -- table of contents --
 \tableofcontents
+\thispagestyle{empty}
 
 \cleardoublepage % Zaczynamy od nieparzystej strony
+\pagenumbering{arabic}
 
 % --- Main Document --- --- --- --- --- --- ---
 %
-%\mainmatter
 \include{contents/1-introduction}
 \include{contents/2-theoretical-background}
 \include{contents/3-symmetry-implementation}
