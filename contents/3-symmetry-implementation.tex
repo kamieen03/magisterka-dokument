@@ -2,7 +2,131 @@
 
 \subsection{ResNet}
 \subsection{Invariant models}
+As described in \ref{sec:theoretical_equiinv}, in order to construct a network
+invariant to some group of transformations, either the first layer has to be
+invariant or first layers have to be equivariant with an invariant layer
+following them. In this section we construct networks of both of these types.
+First we need to construct layers invariant to changes in
+contrast, brightness and color balance as defined in
+\ref{sec:transformations}. If possible it would be best to use a single function
+invariant to all of these transformations at once. Fortunately such layer
+exists. We show that simple instance normalization has this property.
+Instance normalization layer $\textit{IN}$ transforms each channel
+$X_c$ of image $X$ by:
+$$ \mathit{IN}(X_c) = \frac{X_c-E[X_c]}{\sigma(X_c)} $$
+where $E[X_c]$ is mean value of $X_c$.
+Each instance in batch is normalized separately.
+\textit{IN} is invariant to changes in contrast $\mcc$:
+\begin{align*}
+    \textit{IN}(\mcc_a(X)_c) &=
+    \frac{aX_c+(1-a)E[X]_c - E\left[aX_c+(1-a)E[X]_c\right]}{\sigma(aX_c+(1-a)E[X]_c)} = \\
+    &= \frac{aX_c+(1-a)E[X]_c - aE[X_c]-(1-a)E[X]_c}{a\sigma(X_c)} = \\
+    &= \frac{aX_c-aE[X_c]}{a\sigma(X_c)} = \\
+    &= \frac{X_c-E[X_c]}{\sigma(X_c)} = \\
+    &= \textit{IN}(X_c)
+\end{align*}
+Similarly for brightness changes $\mathcal{B}$:
+\begin{align*}
+    \textit{IN}(\mathcal{B}_a(X)_c) &=
+    \frac{aX_c - E\left[aX\right]_c}{\sigma(aX_c)} = \\
+    &= \frac{aX-aE[X_c]}{a\sigma(X_c)} = \\
+    &= \frac{X_c-E[X_c]}{\sigma(X_c)} = \\
+    &= \textit{IN}(X_c)
+\end{align*}
+Whereas color balance changes $\mathcal{W}$ act on individual channels by simple
+scaling so:
+\begin{align*}
+    \textit{IN}(\mathcal{W}_T(X)_c) &=
+    \frac{T_cX_c - E\left[T_cX_c\right]}{\sigma(T_cX_c)} = \\
+    &= \frac{T_cX-T_cE[X_c]}{T_c\sigma(X_c)} = \\
+    &= \frac{X_c-E[X_c]}{\sigma(X_c)} = \\
+    &= \textit{IN}(X_c)
+\end{align*}
+Therefore any neural network with $\textit{IN}$ as first layer
+makes the network invariant to considered image transformations.
+We denote this type of networks as In0-CBW-\{model-name\}, e.g. In0-CBW-Resnet18 or
+In0-CBW-Resnet34. Where 0 refers to placement of the invariant layer at the
+beginning of the network. We also consider invariant networks with $\textit{IN}$
+layer placed further down the processing stream. As mentioned earlier,
+constructing such network requires all layers before $\textit{IN}$ to be
+equivariant. Since the equivariance to changes in color balance is not defined,
+we focus on contrast and brightness. In the next section \ref{sec:equ_models} we
+present variants of common layers like convolution or pooling equivariant to
+these transformations. We use these components to construct invariant networks
+denoted In1-CB-Resnet18, In2-CB-Resnet18, In1-CB-Resnet34 and In2-CB-Resnet34. 1 and 2
+again refer to placement of the $\textit{IN}$ layer -- $1$ means placement
+after Resnet's first BasicBlock and 2 -- after Resnet's second
+BasicBlock.
+
 \subsection{Equivariant models}
-    \subsubsection{Brightness equivariance}
-    \subsubsection{Contrast equivariance}
+\label{sec:equ_models}
+
+\subsubsection{Brightness equivariance}
+We begin with showing that common building blocks of CNNs except for
+normalization are equivariant to change of brightness:
+\begin{itemize}
+    \item \textbf{Convolution} is linear operation so $\textit{Conv}(aX) =
+        a\textit{Conv}(X)$
+    \item \textbf{Pooling} - all usual pooling layers are equivariant:
+        \begin{itemize}
+            \item MaxPooling amounts to taking maximal value of some set and\\
+                $\max\{ax_1,ax_2,\cdots,ax_n\}=a\max\{x_1,x_2,\cdots,x_n\}$
+            \item AveragePooling is linear just like mean value $E[X]$
+            \item EuclideanNormPooling -
+                $\sqrt{(ax_1)^2+\cdots+(ax_n)^2} = a\sqrt{x_1^2+\cdots+x_n^2}$
+        \end{itemize}
+    \item \textbf{Activation functions} -- equivariant pointwise activation
+        function is characterised by equation $f(ax) = af(x)$ for all $a>0$.
+        Assuming f is differentiable $af'(ax) = af'(x)$, so $f'(ax)=f'(x)$ which
+        means that $f'(a)=f'(1)$ for $a>0$ and $f'(b)=f'(-1)$ for $b<0$.
+        This implies $f$ has form of generalized ReLU function
+        $$f(x)=\left\{
+            \begin{array}{lll}
+                ax & \mbox{for some } a \in \mathbb{R} & \mbox{if } x<0 \\
+                bx & \mbox{for some } b \in \mathbb{R} & \mbox{if } x \geq 0
+            \end{array}\right.$$
+        In particular we can use usual ReLU function.
+    \item \textbf{Normalization} As shown above, common normalization methods are
+        invariant to brightness changes. This stems mainly from division by
+        standard deviation which is equivariant to $\mathcal{B}$. In fact since
+        the numerator of $\textit{IN}$ is equivariant to $\mathcal{B}_a$ --
+        $aX_c-E[aX_c]=a(X_c-E[X_c])$ -- division by any factor involving $a$
+        will break equivariance. For the same reason, we can't use any
+        nonlinear operation like taking the square root.
+        Therefore if we want the normalization to zero
+        out mean value of input, we must divide by a constant. This might have
+        adverse effect on network's training since there is no mechanism to keep
+        values flowing through the network bounded, which might easily result in
+        gradient explosion. We compare norms of gradients in {\color{red}TODO}
+\end{itemize}
+    Change of contrast:
+    \begin{verbatim}
+        return X*factor + (1-factor)*mean
+    \end{verbatim}
+
+    Lifting:
+    \begin{verbatim}
+        l = [change_contrast(X, c) for c in self.cs]
+        return torch.stack(l, dim=2)
+    \end{verbatim}
+
+    Group convolution:
+    \begin{verbatim}
+        cout = self.kernel.shape[0]
+        lifted_kernel = self.lift(self.kernel)
+        k_stack = torch.cat([change_contrast(lifted_kernel, c)
+                             for c in self.cs], dim=0)
+        kcout, kcin, kd, kh, kw = k_stack.shape
+        k_stack = k_stack.view(kcout, kcin*kd, kh, kw)
+        ib, icin, id, ih, iw = X.shape
+        fX = X.view(ib, icin*id, ih, iw)
+        fX = F.pad(fX, self.padding, mode='constant', value=fX.mean())
+        out = F.conv2d(fX, k_stack, stride=self.stride, padding=0, bias=self.bias)
+        _, _, oh, ow = out.shape
+        out = out.view(ib, id, cout, oh, ow)
+        out = out.transpose(1,2)
+    \end{verbatim}
+
+\subsubsection{Contrast equivariance}
+
 

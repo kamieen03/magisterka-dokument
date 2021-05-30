@@ -36,7 +36,7 @@
         Bijective homomorphism is called \textbf{isomorphism}.\\
 
         In this work we are mainly interested in groups in context of their actions
-        on images. Given a group $G$ and set $X$ we define a
+        on 3D tensors. Given a group $G$ and set $X$ we define a
         \textbf{group action} of $G$ on $X$ as a function
         \begin{equation}
             \theta: G \times X \to X
@@ -54,7 +54,20 @@
         translations - action of $\left(\mathbb{R}^n,+\right)$ given by $v \cdot x = v+x$ or
         rotations - action of $SO(n,\mathbb{R})$ given by $r \cdot x = Rx$ where
         $R$ is matrix representation of rotation and
-        multiplication on the right is matrix-vector multiplication.
+        multiplication on the right is matrix-vector multiplication.\\
+        Now suppose we are given some function $f:G\to \mathbb{R}^n$.
+        We can define natural action of $G$ on set of such functions by:
+        \begin{equation}
+            (g\cdot f)(x) = f(g^{-1}\bullet x)
+        \end{equation}
+        It's a group action because:
+        \begin{align*}
+            & (e\cdot f)(x) = f(e\bullet x) = f(x) \\
+            & \mbox{and} \\
+            & ((g\bullet h) \cdot f)(x) = f((g\bullet h)^{-1} \bullet x) =
+            f(h^{-1}\bullet g^{-1} \bullet x) = (h\cdot f)(g^{-1} \bullet x) =
+            (g\cdot(h \cdot f))(x)
+        \end{align*}
 
 
 
@@ -65,6 +78,7 @@
 
 \subsection{Equivariant and invariant neural networks}
     \subsubsection{Equivariant and invariant maps}
+    \label{sec:theoretical_equiinv}
     \hspace{0.5cm}
      Key properties of neural networks in regard to group actions are equivariance and invariance.
         These can be abstractly defined as follows: \par
@@ -85,37 +99,37 @@
         specified group action, we need to make sure each of it's layers is equivariant.
         If we treat $\mathcal{N}$ as a series of functions $f_0,f_1,...,f_n$, then
         \begin{align*}
-            & \mathcal{N}(g \cdot x) = \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x) =  \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ \left( g \cdot f_0(x) \right) = \\
-            & \cdots = \\
-            & g \cdot f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) = \\
-            & g \cdot \mathcal{N}(x)
+            \mathcal{N}(g \cdot x) &=
+            f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x)  \\
+            &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ \left( g \cdot f_0(x) \right) \\
+            &= \cdots \\
+            &= g \cdot f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) \\
+            &= g \cdot \mathcal{N}(x)
         \end{align*}
         where $g\cdot x$ is the action of $g$ on $x$. Often we don't want the network
         to be fully equivariant; the desired extent of equivariance depends on the task.
         For problems of image-to-image type like segmentation full equivariance is desirable.
         However for problems where the input data gets more and more ``squished'' in consecutive layers,
         we need to break equivariance at some point. Like for example in classification,
-        final layers are often fully connected and not equivariant. \par
+        where final layers are often fully connected and not equivariant. \par
         The easiest way to assert the network is invariant to some transformation
         is making it's very first layer $f_0$ invariant, then:
         \begin{align*}
-            & \mathcal{N}(g\cdot x) = \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x) =  \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) = \\
-            & \mathcal{N}(x)
+            \mathcal{N}(g\cdot x)
+            &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x)  \\
+            &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) \\
+            &= \mathcal{N}(x)
         \end{align*}
-        Equivalently one cam make the couple first layers equivariant and a single layer
+        Equivalently one can make the couple first layers equivariant and a single layer
         following them invariant. For example if $f_0$ is equivariant and $f_1$ invariant we get:
         \begin{align*}
-            & \mathcal{N}(g\cdot x) = \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x) =  \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ \left( g \cdot f_0(x) \right) = \\
-            & f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) = \\
-            & \mathcal{N}(x)
+            \mathcal{N}(g\cdot x)
+            &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x)  \\
+            &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ \left( g \cdot f_0(x) \right) \\
+            &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) \\
+            &= \mathcal{N}(x)
         \end{align*}
-        and the network is invariant.
+        and the network is again invariant.
 
     \subsubsection{GCNN}
     The primary example of equivariant neural networks are convolutional neural
@@ -124,40 +138,104 @@
     layers and activation functions.  These common building are approximately
     equivariant to translations:
     \begin{itemize}
-        \item Convolutional layer - assuming $\textit{stride}=1$, convolution is
-            equivariant except for tensor's borders. The border effects can to
+        \item Convolutional layer is
+            equivariant outisde of image's borders. The border effects can to
             some extent be fixed by padding image with values present in the
-            border.  Problem arises when \textit{stride} is greater than 1. Then
-            layer becomes locally invariant -- that is small translations don't
+            border or their avarages.
+        \item Max pooling layer is locally invariant -- that is small translations don't
             affect the layer's output, but translations which are multiplicities
-            of \textit{stride} cause equivariant behaviour. The same is true for
-            max pooling layers. In average pooling local behaviour is more
-            complicated, but they are also equivariant to \textit{stride}-sized
+            of window's size cause equivariant behaviour.
+            In average pooling local behaviour is more
+            complicated, but they are also equivariant to window-sized
             translations.
-            \item Usual normalization schemes like batch or instance
-                normalization are applied pointwise so they would be perfectly
-                equivariant if not for the border effects.  Translation and
-                padding change the tensor's statistics like mean and standard
-                deviation slightly, so the normalizations of translated and
-                non-translated tensors differ by some amount.
-            \item Activation functions are also applied pointwise so, they are
-                equivariant outside the translated region.
+        \item Usual normalization schemes like batch or instance
+            normalization depend on global statistics
+            like mean and standard deviation which change slightly during
+            translation so their are not exactly equivariant. However given
+            proper padding method these changes can be very small if
+            translation is not too big.
+        \item Activation functions are applied pointwise so, they are
+            perfectly equivariant outside borders.
     \end{itemize}
-    By generalizing architecture of CNNs we would like to construct models
-    equivariant and invariant to some specified set of image transformations.
-    On of the earliest work on this problem appeared in \cite{cohen2016}. There
+    Of course the most crucial parts of CNN are convolution layers. At each
+    layer CNN takes as input 3-dimensional tensor which can be thought of as a
+    stack of functions $f:\mathbb{Z}^2\to\mathbb{R}^C$ where $C$ is number of channels.
+    Convolutional layer correlates it with a set of filters $\psi^i$
+    and each filter can also be thought of as a stack of functions
+    $\psi^i:\mathbb{Z}^2\to\mathbb{R}^C$:
+    \begin{equation}
+        \label{eq:cnn}
+        (f\star\psi^i)(x) = \sum_{y\in\mathbb{Z}^2}\sum_{c=1}^C
+        f_c(y)\psi_{c}^{i}(y-x)
+    \end{equation}
+
+    By generalizing convolutions and architecture of CNNs we would like to
+    construct models
+    equivariant or invariant to some specified set of image transformations.
+    One of the earliest works on this problem appeared in \cite{cohen2016}. There
     the so called \textit{Group Equivariant Convolutional Neural Networks}
     (G-CNNs) equivariant to possibly any discrete set of transformations were
-    proposed. Their main idea is lifting the tensors the networks operates on
-    from 4 dimensions to 5 dimensions. Just like traditionally the last two
-    dimensions encode height and width, this new dimension is supposed to
-    encode information about the chosen group of transformations. The authors
-    worked on group generated by rotations by $90\deg$ (4-element group) as well as rotations
-    with reflections (8-element group).
-    The ideas contained in this paper were then further generalized to new
+    proposed. Their main idea is generalizing the convolution layer by
+    lifting tensors the network operates on to higher dimensions.
+    Just like traditionally the last two
+    dimensions encode height and width, these new dimensions can
+    encode information about the chosen group of transformations. These higher
+    dimensional tensors are then thought of as stacks of functions
+    $f:G\to\mathbb{R}^C$. Pictures \ref{fig:p4_rot} and \ref{fig:p4m_rot} show
+    feature maps for group of translations and rotations and for group of
+    translations, rotations and reflections respectively. Convolutional filters have similar
+    shape, just their heights and widths are smaller.
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\textwidth]{p4_rot}
+        \label{fig:p4_rot}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\textwidth]{p4m_rot}
+        \label{fig:p4m_rot}
+    \end{figure}
+
+    \textbf{Lift} operation transforms tensor from function stack on $\mathbb{Z}^2$
+    to function stack on group $G$:
+    \begin{equation}
+        \label{eq:gcnn-lift}
+        (f\star\psi^i)(g) = \sum_{y\in \mathbb{Z}^2}\sum_{c=1}^C
+        f_c(y)\psi_{c}^{i}(g^{-1}y)
+    \end{equation}
+    Once the input tensor is lifted, in consecutive convolutional layers it
+    undergoes \textbf{group convolutions}:
+    \begin{equation}
+        \label{eq:gcnn}
+        (f\star\psi^i)(g) = \sum_{y\in G}\sum_{c=1}^C
+        f_c(y)\psi_{c}^{i}(g^{-1}y)
+    \end{equation}
+    Note that while in equation \ref{eq:cnn} computation is done by sliding
+    $y$ on $\mathbb{Z}^2$, in equation \ref{eq:gcnn} it's replaced by more
+    general iteration on all group elements. If we replace $G$ by $\mathbb{Z}^2$
+    and set $g=x$ we obtain equation \ref{eq:cnn} back since in $\mathbb{Z}^2$,
+    $x^{-1}$ is just $-x$. We can prove operator defined by equation
+    \ref{eq:gcnn} is equivariant to action of any element $h$ of $G$:
+    \begin{align*}
+        ((h\cdot f)\star\psi)(g) & =
+        \sum_{y\in G}\sum_{c=1}^C f_c(h^{-1}y)\psi_{c}(g^{-1}y)\\
+        & = \sum_{hy\in G}\sum_{c=1}^C f_c(y)\psi_{c}(g^{-1}hy)\\
+        & = \sum_{hy\in G}\sum_{c=1}^C f_c(y)\psi_{c}((h^{-1}g)^{-1}y)\\
+        & = (f\star\psi)(h^{-1}g) &  \\
+        & = (h\cdot(f\star\psi))(g)
+    \end{align*}
+    The proof goes similarly for equation \ref{eq:gcnn-lift}.
+
+    The ideas contained in \cite{cohen2016} were further generalized to new
     domains, new possible group of transformations and neural network
-    architectures. %TODO: write about each generalization, cite and insert some
-    pictures
+    architectures. \cite{bekkers2019, lieconv} propose general frameworks for
+    GCNNs equivariant to any Lie group whereas \cite{cohen2016} only really
+    touched on finite groups. That's important since many natural
+    transformations of data are continuous and often have structure of Lie group
+    like group of all rotations of plane ($SO(2)$), rotations of sphere
+    ($SO(3)$) or scaling of images $(R_+, \times)$.
+
+    %TODO: write about each generalization, cite and insert some pictures
 
 \subsection{Image symmetries}
     \label{sec:transformations}
@@ -167,9 +245,13 @@
     W\right)$.
     \subsubsection{Contrast}
     \newcommand\mcc{\mathcal{C}}
-        The usual formula for changing image's contrast by factor of $a$ is $$
+        The usual formula for changing image's contrast by factor of $a$ is
+        \begin{equation}
+            \label{eq:contrast_old}
         C_a(X) = \mathit{CLIP}\left(a\cdot X + (1-a) \cdot E\left[ \frac{w_1X_r
-        + w_2X_g + w_3X_b}{w_1+w_2+w_3}\right]   \right) $$ where
+        + w_2X_g + w_3X_b}{w_1+w_2+w_3}\right]   \right)
+        \end{equation}
+        where
         $\mathit{CLIP}$ is function clipping values to $\left[0;1\right]$ range,
         $X_r, X_g$ and $X_b$ are red, green and blue channels of the image and
         the expectation on the right is mean value of grayscale version of
@@ -188,7 +270,7 @@
         performance. To avoid these effects we entirely give up on clipping
         values.  The final formula for changing contrast is following:
         \begin{equation}
-            \label{contrast}
+            \label{eq:contrast}
             \mathcal{C}_a(x) = ax + (1-a) \mu_x
         \end{equation}
         where $\mu_x$ is the average value of whole tensor. It's however worth
@@ -237,20 +319,59 @@
                 $$ h(\mcc_a)h(\mcc_b) = ab = h(\mcc_{ab})$$
                 It is bijective so it's isomorphism.
 
-            \item Equation \ref{contrast} defines a group action of $\mcc$ on space of images:
+            \item Equation \ref{eq:contrast} defines a group action of $\mcc$ on space of images:
                 $\mcc_1 \cdot x = 1x + (1-1)\mu_x = x$ and checking the compatibility axiom
                 is the same as checking the closure axiom above.
             \item $\mcc_n$ increases standard deviation of image $n$ times:\\
                 $\sigma(\mcc_n(x)) = \sigma(nx + (1-n)\mu_x) = \sigma(nx) = n\sigma(x)$
         \end{itemize}
+        \par Visually the difference between operators using weighted and unweighted
+        averages is small. Picture \ref{fig:contrast_pics} shows series of
+        photographies from STL10 dataset with with varying contrast changes.
+
+        \newcommand{\contrastpic}[3]{
+            \begin{subfigure}{#3\textwidth}
+                \includegraphics[width=\linewidth]{contrast_#1/#2}
+            \end{subfigure}}
+        \newcommand{\contrastpiccaption}[4]{
+            \begin{subfigure}{#3\textwidth}
+                \includegraphics[width=\linewidth]{{contrast_#1/#2}.jpg}
+                \caption*{$a=#4$}
+            \end{subfigure}}
+
+        \begin{figure}[h]
+            \centering
+            \foreach \n in {0_1, 0_25, 0_5, 1, 2, 4,10}
+                {\contrastpic{default}{0temp\n}{0.12}} \\
+            \foreach \n in {0_1, 0_25, 0_5, 1, 2, 4,10}
+                {\contrastpic{custom}{0temp\n}{0.12}} \\[1em]
+            \foreach \n in {0_1, 0_25, 0_5, 1, 2, 4,10}
+                {\contrastpic{default}{121temp\n}{0.12}} \\
+            \foreach \n in {0_1, 0_25, 0_5, 1, 2, 4,10}
+                {\contrastpic{custom}{121temp\n}{0.12}} \\[1em]
+            \foreach \n in {0_1, 0_25, 0_5, 1, 2, 4,10}
+                {\contrastpic{default}{105temp\n}{0.12}} \\
+            \foreach \n in {0.1, 0.25, 0.5, 1, 2, 4,10}
+                {\contrastpiccaption{custom}{105temp\n}{0.12}{\n}}
+
+        \caption{Differences between weighted and unweighted contrst change
+            operator. Top rows: $C_a$ operator (equation \ref{eq:contrast_old}.
+            Bottom rows: $\mcc_a$ operator (equation \ref{eq:contrast} with
+            clipping).}
+        \label{fig:contrast_pics}
+        \end{figure}
 
 
     \subsubsection{Brightness}
         Change in image brightness is defined similarly to change in contrast, except
-        the part with image's mean is skipped:
-        $$ \mathcal{B}_a(X) = \mathit{CLIP}\left(a\cdot X\right) $$
+        the subtraction of image's mean is skipped:
+        \begin{equation}
+            \label{eq:bright_old}
+            B_a(X) = \mathit{CLIP}\left(aX\right)
+        \end{equation}
         Again omitting the clipping, the brightness change operator is defined simply as
         \begin{equation}
+            \label{eq:bright}
             \mathcal{B}_a(x) = ax
         \end{equation}
         All properties characterising the $\mcc$ operators listed above
@@ -258,8 +379,41 @@
         It's worth noting, that in this case removing the clipping step doesn't change
         the definition so significantly. In fact both formulas agree as long as $a\leq 1$,
         that is as along as brightness is not increased.
+        Picture \label{fig:brightness_pics} shows images with brightness varying
+        according to equation \ref{eq:bright_old}.
+
+
+        \newcommand{\brightnesspic}[2]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{brightness/#1}.jpg}
+            \end{subfigure}}
+        \newcommand{\brightnesspiccaption}[3]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{brightness/#1}.jpg}
+                \caption*{$a=#3$}
+            \end{subfigure}}
+
+        \begin{figure}[h]
+            \centering
+            \foreach \n in {0.1, 0.25, 0.5, 1, 2, 4,10}
+                {\brightnesspic{0temp\n}{0.12}} \\
+            \foreach \n in {0.1, 0.25, 0.5, 1, 2, 4,10}
+                {\brightnesspic{121temp\n}{0.12}} \\
+            \foreach \n in {0.1, 0.25, 0.5, 1, 2, 4,10}
+                {\brightnesspiccaption{105temp\n}{0.12}{\n}}
+
+        \caption{Images from STL10 dataset with brightness changed with operator
+            $B_a$.}
+        \label{fig:brightness_pics}
+        \end{figure}
+
+
         %TODO: insert the plot of mean value of transformed image depending on change
         % brightness
+
+
+
+
     \subsubsection{Color balance}
         Suppose we are given a 3-channel image represented as a list of channels
         $\left[ X_r, X_g, X_b\right]$. Then the operator changing the color balance
@@ -274,14 +428,44 @@
         though there is not much change after the $15000$ threshold.
         Figure \ref{fig:color_balance} shows part of possible temperature spectrum
         together with colors characterising temperatures in terms of uint8 RGB triplets.
+        Picture \ref{fig:cb_pics} shows images with varying color balance.
 
-            \begin{figure}[h]
-                \includegraphics[width=\textwidth]{color_balance}
-                \label{fig:color_balance}
-            \end{figure}
-        However unlike contrast or brightness, the color balance is inherently
+        \begin{figure}[h]
+            \includegraphics[width=\textwidth]{color_balance}
+            \caption{}
+            \label{fig:color_balance}
+        \end{figure}
+
+        \newcommand{\cbpic}[2]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{color_balance/#1}.jpg}
+            \end{subfigure}}
+        \newcommand{\cbpiccaption}[3]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{color_balance/#1}.jpg}
+                \caption*{$T=#3K$}
+            \end{subfigure}}
+
+        \begin{figure}[h]
+            \centering
+            \foreach \n in {1000, 3000, 5000, 7000, 9000}
+                {\cbpic{0temp\n}{0.18}} \\
+            \foreach \n in {1000, 3000, 5000, 7000, 9000}
+                {\cbpic{121temp\n}{0.18}} \\
+            \foreach \n in {1000, 3000, 5000, 7000, 9000}
+                {\cbpiccaption{105temp\n}{0.18}{\n}}
+
+        \caption{Images from STL10 dataset with color balance changed with operator
+            $\mathcal{W}_T$.}
+        \label{fig:cb_pics}
+        \end{figure}
+
+        Unlike contrast or brightness, the color balance is inherently
         bound to colors of image, so it's very hard to come up with reasonable
         generalization to higher dimensions which would allow us to measure
         equivariance. We choose not to do that and instead only construct
         networks invariant to changes in color balance.
+
+
+
 
