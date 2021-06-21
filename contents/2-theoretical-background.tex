@@ -239,10 +239,16 @@
 
 \subsection{Image symmetries}
     \label{sec:transformations}
-    In this section we define and generalize operators changing contrast,
-    brightness and color balance on image where ``image'' is an array of
+    In this section we define and generalize symmetries of images that we wish
+    neural networks to respect. First we describe
+    properties related to lightning in image - contrast,
+    brightness, color balance and gamma correction. Then geometric operators -
+    rotations, scaling and shear - are presented.
+    Throghout this section and for the rest of the work,
+    ``image'' is understood to be an array of
     floating point numbers in range $\left[0;1\right]$ of shape $\left(3, H,
     W\right)$.
+    \subsection{Lightning operators}
     \subsubsection{Contrast}
     \newcommand\mcc{\mathcal{C}}
         The usual formula for changing image's contrast by factor of $a$ is
@@ -466,6 +472,136 @@
         equivariance. We choose not to do that and instead only construct
         networks invariant to changes in color balance.
 
+    \subsubsection{Gamma correction}
+
+    \subsubsection{Rotation}
+        When speaking of image rotating, we typically mean rotation around
+        image's center. In coordinate system with $(0,0)$ representing the
+        center, rotation of coordinates
+        can be represented as an element of $SO(2)$ group - $2\times2$ matrix of
+        the form
+        $$\mathcal{R}_\theta = \begin{bmatrix}
+                \cos\theta & -\sin\theta \\
+                \sin\theta &  \cos\theta
+            \end{bmatrix}$$
+        which transforms coordinates (2d vectors) by matrix multiplication.
+        After rotating coordinates pixels of original image need to be resampled
+        in some way, which slightly distors the picture unless the rotation angle
+        is a multplie of $90\degree$. If we want rotations to preserve all
+        information present in picture
+        we need to take care of appriopriate
+        expansion of borders and possible padding with 0s.
+        It's also important from more theoretical point of view - expansion
+        assures rotations compose nicely, that is form a group
+        action on the space of images.
+        Figure
+        \ref{fig:rotation_pics} illustrates neccesity of border expansion.
+        Lack of expansion causes rotation composition to lose part of
+        information which moves outisde the border.
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=\textwidth]{rotations}
+            \label{fig:rotation_pics}
+            \caption{Difference between rotation with and without border
+                expansion. Left column shows the original image and it's
+                rotation by 90\degree. In middle column image is first rotated
+                by 45\degree with expansion, then rotated again and cropped to
+                original size. In the right column picture is simply rotated
+                twice by 45\degree.}
+        \end{figure}
+        While filters present in GCNNs are higher dimensional than in regular
+        CNNs, spatial interpretation of the last two dimensions remains
+        unchanged. Therefore it makes sense to generalize $\mathcal{R}$ to
+        transform N-dimensional tensor by separetely rotating last two
+        dimensions of every subtensor and stacking them in original shape.
+        The same goes for scaling and shear transformations described next.
+
+    \subsubsection{Scaling}
+        Scaling is a zoom-in or zoom-out transformation in reference to the
+        center of the image. Scaling of cooridnates can be written as
+        \begin{equation}
+            \mathcal{S}_k = \begin{bmatrix}
+                k & 0 \\
+                0 & k
+            \end{bmatrix}
+        \end{equation}
+        Just like in rotation, after rescaling of coordinates, image needs to be
+        resampled.
+        Figure \ref{fig:scalings} shows varying degree of scaling.
+        Note that by default scaling-up causes loss of
+        information, so we might want to use image expansion as well.
+        However while using finite expansion (increasting image size by at most
+        $\sqrt{2}$) we can make rotations into a group action,
+        it's not the case for scaling. In order to preserve all information
+        during scaling by factor of $k>1$, we would have to increase image
+        size by the same factor. For this reason scaling is often modeled not as
+        a group, but rather as a semi-group or monoid. However it's not really any
+        obstacle -- what matters is that locally it still has structure of a Lie
+        group.
 
 
+        \newcommand{\scalepic}[2]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{scalings/#1}.jpg}
+            \end{subfigure}}
+        \newcommand{\scalepiccaption}[3]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{scalings/#1}.jpg}
+                \caption*{$k=#3$}
+            \end{subfigure}}
+
+        \begin{figure}[h]
+            \centering
+            \foreach \n in {0.5,0.75,1,1.5,2}
+                {\scalepic{0temp\n}{0.18}} \\
+            \foreach \n in {0.5,0.75,1,1.5,2}
+                {\scalepic{121temp\n}{0.18}} \\
+            \foreach \n in {0.5,0.75,1,1.5,2}
+                {\scalepiccaption{105temp\n}{0.18}{\n}}
+
+            \caption{Images from STL10 dataset with scaled by a factor of $k$.}
+            \label{fig:scalings}
+        \end{figure}
+
+    \subsubsection{Shear}
+        Shear operator `tilts' the coordinates. If we use the standard coordinate
+        system centered  in the middle of the image,
+        the first vector $e_1$ remains unchanged while $e_2$ is mapped
+        to $\lambda e_1 + e_2$:
+        \begin{equation}
+        \mathcal{SH}_\lambda = \begin{bmatrix}
+                1 & \lambda \\
+                0 & 1
+            \end{bmatrix}
+        \end{equation}
+        where $\lambda \in \mathbb{R}$. Parameter $\lambda$ is theoretically
+        unbounded so the remarks from scaling section apply here as well. In
+        practice however $\lambda = \pm -1$ causes tilt of $45 \degree$ which is
+        already very significant so we only consider $\lambda \in [-1;1]$.
+        Exemplary effect of transformation is shown in figure \ref{fig:shears}.
+
+        \newcommand{\shearpic}[2]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{shears/#1}.jpg}
+            \end{subfigure}}
+        \newcommand{\shearpiccaption}[3]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{shears/#1}.jpg}
+                \caption*{$\lambda=#3$}
+            \end{subfigure}}
+
+        \begin{figure}[h]
+            \centering
+            \foreach \n in {-1,-0.5,0,0.5,1}
+                {\shearpic{0temp\n}{0.18}} \\
+            \foreach \n in {-1,-0.5,0,0.5,1}
+                {\shearpic{121temp\n}{0.18}} \\
+            \foreach \n in {-1,-0.5,0,0.5,1}
+                {\shearpiccaption{105temp\n}{0.18}{\n}}
+
+                \caption{Images from STL10 dataset transformed by
+                $\mathcal{SH}_\lambda$ for varying $\lambda$.}
+            \label{fig:shears}
+        \end{figure}
 

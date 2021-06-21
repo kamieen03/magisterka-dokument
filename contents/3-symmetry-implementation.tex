@@ -2,12 +2,13 @@
 
 \subsection{ResNet}
 \subsection{Invariant models}
+\subsubsection{IN Layer}
 As described in \ref{sec:theoretical_equiinv}, in order to construct a network
 invariant to some group of transformations, either the first layer has to be
 invariant or first layers have to be equivariant with an invariant layer
 following them. In this section we construct networks of both of these types.
 First we need to construct layers invariant to changes in
-contrast, brightness and color balance as defined in
+contrast, brightness, color balance amd gamma correction as defined in
 \ref{sec:transformations}. If possible it would be best to use a single function
 invariant to all of these transformations at once. Fortunately such layer
 exists. We show that simple instance normalization has this property.
