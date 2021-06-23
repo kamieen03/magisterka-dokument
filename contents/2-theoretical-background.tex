@@ -59,6 +59,7 @@
         We can define natural action of $G$ on set of such functions by:
         \begin{equation}
             (g\cdot f)(x) = f(g^{-1}\bullet x)
+            \label{eq:action_on_function}
         \end{equation}
         It's a group action because:
         \begin{align*}
@@ -87,7 +88,7 @@
         \begin{equation}
             f(g \cdot x) = g \cdot f(x)
         \end{equation}
-        In turn, we call $f$ invariant with respect to action of $G$
+        In turn, we call $f$ invariant with respect to action of $G$ if
         \begin{equation}
             f(g \cdot x) = f(x)
         \end{equation}
@@ -129,7 +130,9 @@
             &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) \\
             &= \mathcal{N}(x)
         \end{align*}
-        and the network is again invariant.
+        and the network is again invariant. Modern literature is often not so
+        clear regarding terminology and networks of the above type are sometimes
+        also called equivariant.
 
     \subsubsection{GCNN}
     The primary example of equivariant neural networks are convolutional neural
@@ -181,33 +184,50 @@
     dimensions encode height and width, these new dimensions can
     encode information about the chosen group of transformations. These higher
     dimensional tensors are then thought of as stacks of functions
-    $f:G\to\mathbb{R}^C$. Pictures \ref{fig:p4_rot} and \ref{fig:p4m_rot} show
-    feature maps for group of translations and rotations and for group of
-    translations, rotations and reflections respectively. Convolutional filters have similar
-    shape, just their heights and widths are smaller.
+    $F:G\to\mathbb{R}^C$, where $G$ is the group of transformations.
+    Pictures \ref{fig:p4_rot} and \ref{fig:p4m_rot} show
+    feature maps for $p4$ -- group of translations and rotations and for 
+    $p4m$ -- group of
+    translations, rotations and reflections.
+    Convolutional filters of respective GCNNs are shaped in the same way
+    but their heights and widths are smaller (typically $3\times3$ or $5\times5$
+    just like in normal CNNs).
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.7\textwidth]{p4_rot}
+        \caption{On the left: schematic representation of feature map $F$ flowing through
+            p4-equivaraint GCNN. Computationally $F$ can be thought of as tensor of shape
+            $4\times H \times W$, where each of $4$ submaps represents one of
+            rotations by $0\degree$, $90\degree$, $180\degree$ or $270\degree$.
+            On the right, the same feature map rotated by
+            $90 \degree$ counterclockwise -- $r\cdot F$ in the sense of equation
+            \ref{eq:action_on_function}. Note that every submap follows the
+            red arrow as well as gets rotated. This stems from the structure of
+            $p4$ group.}
         \label{fig:p4_rot}
     \end{figure}
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.7\textwidth]{p4m_rot}
+        \caption{Feature map of p4m-equivariant GCNN and it's rotation by $r$.}
         \label{fig:p4m_rot}
     \end{figure}
 
-    \textbf{Lift} operation transforms tensor from function stack on $\mathbb{Z}^2$
-    to function stack on group $G$:
+    \textbf{Lift} operation is a particual kind of convolution
+    that transforms usual function stack $f$ on $\mathbb{Z}^2$ into
+    function stack $F$ on group $G$. Computationally it takes as input
+    usual 3d tensor (channel, height, width) and produces
+    N-dimensional tensor with $N>3$:
     \begin{equation}
         \label{eq:gcnn-lift}
-        (f\star\psi^i)(g) = \sum_{y\in \mathbb{Z}^2}\sum_{c=1}^C
+        \mathit{Lift}(f)(g) = F(g) = (f\star\psi^i)(g) = \sum_{y\in \mathbb{Z}^2}\sum_{c=1}^C
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
     Once the input tensor is lifted, in consecutive convolutional layers it
     undergoes \textbf{group convolutions}:
     \begin{equation}
         \label{eq:gcnn}
-        (f\star\psi^i)(g) = \sum_{y\in G}\sum_{c=1}^C
+        F(g) = (f\star\psi^i)(g) = \sum_{y\in G}\sum_{c=1}^C
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
     Note that while in equation \ref{eq:cnn} computation is done by sliding
@@ -227,15 +247,28 @@
     The proof goes similarly for equation \ref{eq:gcnn-lift}.
 
     The ideas contained in \cite{cohen2016} were further generalized to new
-    domains, new possible group of transformations and neural network
-    architectures. \cite{bekkers2019, lieconv} propose general frameworks for
+    possible group of transformations, domains and neural network
+    architectures. \cite{cohen_spherical_cnns, kondor_trivedi,
+    esteves_so3} describe covolutional layers equivaraint to
+    the group of 3-dimensional rotations $\mathit{SO}(3)$.
+    They make heavy use of spherical harmonics for parametrization and
+    speedup of computation. Equivariance to $\mathit{SO}(3)$ is beneficial 
+    in any tasks regarding real world environments like depth estimation or 3d
+    objects classification\cite{esteves_so3}. It helps also by
+    prediction of properties of
+    microparticles described in terms of 3d-coordinates \cite{lieconv}.
+    In less obvious way
+    $\mathit{SO}(3)$-equivariant GCNNs are used to process data whose natural
+    domain is sperical, e.g. Earth weather data or images from drone camera
+    \cite{cohen_spherical_cnns}.
+
+    \cite{bekkers2019, lieconv} propose general frameworks for
     GCNNs equivariant to any Lie group whereas \cite{cohen2016} only really
     touched on finite groups. That's important since many natural
     transformations of data are continuous and often have structure of Lie group
     like group of all rotations of plane ($SO(2)$), rotations of sphere
     ($SO(3)$) or scaling of images $(R_+, \times)$.
 
-    %TODO: write about each generalization, cite and insert some pictures
 
 \subsection{Image symmetries}
     \label{sec:transformations}
@@ -301,7 +334,7 @@
 
             \item Under map composition, set
                 $\mathcal{C} = \left\{\mathcal{C}_a | a\in \mathbb{R}_+\right\}$
-                forms a Lie group isomorphic to $\left(R_+,\cdot \right)$ -- set of
+                forms a Lie group isomorphic to $\left(\mathcal{R}_+,\cdot \right)$ -- set of
                 positive real numbers with multiplication:
                 \begin{enumerate}
                     \item Closure:\\
@@ -473,6 +506,71 @@
         networks invariant to changes in color balance.
 
     \subsubsection{Gamma correction}
+        Gamma correction of image X is defined as
+        \begin{equation}
+        G_a(X) = X^a
+        \label{eq:simple_gamma}
+        \end{equation}
+        where $a \in \mathbb{R}_+$ and expoenetiation is done entrywise.
+        Figure \ref{fig:gamma_pics} shows examples of pictures with various gamma
+        settings.
+
+        \newcommand{\gammapic}[2]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{gammas/#1}.jpg}
+            \end{subfigure}}
+        \newcommand{\gammapiccaption}[3]{
+            \begin{subfigure}{#2\textwidth}
+                \includegraphics[width=\linewidth]{{gammas/#1}.jpg}
+                \caption*{$a=#3$}
+            \end{subfigure}}
+
+        \begin{figure}[h]
+            \centering
+            \foreach \n in {0.33, 0.75, 1, 1.5, 3}
+                {\gammapic{0temp\n}{0.18}} \\
+            \foreach \n in {0.33, 0.75, 1, 1.5, 3}
+                {\gammapic{121temp\n}{0.18}} \\
+            \foreach \n in {0.33, 0.75, 1, 1.5, 3}
+                {\gammapiccaption{105temp\n}{0.18}{\n}}
+
+            \caption{Images from STL10 dataset with varying gamma settings.}
+        \label{fig:gamma_pics}
+        \end{figure}
+
+
+        Unfortunately this definition is troublesome when applied to tensors
+        with negative values as for example $a=\frac{1}{2}$ results in
+        complex values. Also since every number has $n$ complex roots of degree
+        $n$, a problem with selecting the proper root appears. In order to avoid
+        these problems, we restrict computation to real numbers and generalize
+        equation \ref{eq:simple_gamma} by:
+        \newcommand\mcg{\mathcal{G}}
+        \begin{equation}
+            \mathcal{G}_a(X) = \mathit{sign}(X)\cdot|X|^a
+            \label{eq:gamma}
+        \end{equation}
+        where $\mathit{sign}(X)$ is a tensor of the same shape as $X$ containing
+        signs of it's entries and $|X|$ contains absolute values os entries.
+        Exponentiation is again computed entrywise. This way we separate signs
+        and magnitudes.
+        \par Unlike the three previous operators, $\mathcal{G}_a$ is nonlinear --
+        $(X+Y)^a \neq X^a + Y^a$ unless $a=1$. This family of transformations forms however a
+        group under function composition $\mcg_a \circ \mcg_b = \mcg_{ab}$.
+        It's isomorphic to $(\mathbb{R}_+, \cdot)$ with isomorphism $f$
+        given by $f:\mcg_a \mapsto a$ and acts on the space of
+        tensors of fixed shape:
+        \begin{itemize}
+            \item $\mathcal{G}_1(X) = X^1 = X$
+            \item $\mcg_a\left(\mcg_b\left(X\right)\right) =
+                \mcg_a\left(s\left(X\right)\cdot\left|X\right|^b\right) =
+                s\left(s\left(X\right)\cdot\left|X\right|^b\right)
+                \cdot\left|s\left(x\right)\cdot\left|X\right|^b\right|^a = 
+                s\left(s\left(X\right)\right)\cdot\left|\left|X\right|^b\right|^a
+                = s\left(X\right)\cdot\left|X\right|^{ba} = \mcg_{ab}(X)$
+        \end{itemize}
+
+
 
     \subsubsection{Rotation}
         When speaking of image rotating, we typically mean rotation around
@@ -502,13 +600,13 @@
         \begin{figure}[h]
             \centering
             \includegraphics[width=\textwidth]{rotations}
-            \label{fig:rotation_pics}
             \caption{Difference between rotation with and without border
                 expansion. Left column shows the original image and it's
                 rotation by 90\degree. In middle column image is first rotated
                 by 45\degree with expansion, then rotated again and cropped to
                 original size. In the right column picture is simply rotated
                 twice by 45\degree.}
+            \label{fig:rotation_pics}
         \end{figure}
         While filters present in GCNNs are higher dimensional than in regular
         CNNs, spatial interpretation of the last two dimensions remains
