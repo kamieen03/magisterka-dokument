@@ -77,8 +77,7 @@
 
 
 
-\subsection{Equivariant and invariant neural networks}
-    \subsubsection{Equivariant and invariant maps}
+\subsection{Equivariant and invariant functions}
     \label{sec:theoretical_equiinv}
     \hspace{0.5cm}
      Key properties of neural networks in regard to group actions are equivariance and invariance.
@@ -121,7 +120,8 @@
             &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(x) \\
             &= \mathcal{N}(x)
         \end{align*}
-        Equivalently one can make the couple first layers equivariant and a single layer
+        Equivalently \cite{lie_transformer}
+        one can make the couple first layers equivariant and a single layer
         following them invariant. For example if $f_0$ is equivariant and $f_1$ invariant we get:
         \begin{align*}
             \mathcal{N}(g\cdot x)
@@ -134,6 +134,7 @@
         clear regarding terminology and networks of the above type are sometimes
         also called equivariant.
 
+\subsection{Equivariant neural networks}
     \subsubsection{GCNN}
     The primary example of equivariant neural networks are convolutional neural
     networks which are (roughly) equivariant to translations. The $4$ basic
@@ -246,6 +247,7 @@
     \end{align*}
     The proof goes similarly for equation \ref{eq:gcnn-lift}.
 
+\subsubsection{Related work}
     The ideas contained in \cite{cohen2016} were further generalized to new
     possible groups of transformations, domains and neural network
     architectures. \cite{cohen_spherical_cnns, kondor_trivedi,
@@ -262,15 +264,53 @@
     domain is spherical, e.g. Earth weather data or images from drone camera
     \cite{cohen_spherical_cnns}.
 
-    
+    Another particularly well-researched group of transformations is scaling.
+    \cite{deep_scale_spaces} formalizes problem in terms of semigroup theory and
+    uses gaussian kernels together with down sampling to eliminate higher
+    frequencies which would otherwise might cause artifacts in image.
+    \cite{bekkers2019} constructs general architecture equivariant to any (Lie) group
+    of transformations specified by programmer. The scaling is then represented abstractly as
+    the group $\left(\mathbb{R}_+,\cdot\right)$. \cite{scale_steerable} uses
+    fixed base of steerable filters and constructs actual filters as linear
+    combinations of these.
 
-    \cite{bekkers2019, lieconv} propose general frameworks for
-    GCNNs equivariant to any Lie group whereas \cite{cohen2016} only really
-    touched on finite groups. That's important since many natural
-    transformations of data are continuous and often have structure of Lie group
-    like group of all rotations of plane ($SO(2)$), rotations of sphere
-    ($SO(3)$) or scaling of images $(R_+, \times)$.
 
+    \cite{bekkers2019, lieconv, lie_transformer} propose general frameworks for
+    GCNNs equivariant to any Lie group. In order to parametrize the manifold and
+    make sense of distances on it, they use Lie algebras and exponential maps.
+    For the purpose of these papers, Lie algebras can essentially be treated as
+    ordinary finite dimensional vector spaces $\mathbb{R}^n$. Exponential map
+    is a smooth map from Lie algebra to the associated Lie group. This way
+    instead of dealing with often unintuitive structure of Lie groups, we can
+    compute everything with familiar operations on vectors. For example 
+    instead of computing distance between two rotation matrices directly, it
+    suffices to compute the difference between the vectors corresponding to
+    these matrices in the Lie algebra.
+
+    \cite{lie_transformer, attentive_gcnn, coattentive} add attention mechanisms
+    and ensure they are also equivariant with respect to chosen group of
+    transformations. \cite{lie_transformer} extends ideas from \cite{lieconv}
+    and is able to handle arbitrary Lie groups.
+    \cite{attentive_gcnn, coattentive} operate on discrete (finite) groups of
+    transformations and use circulant attention matrices to make them
+    equivariant to rotations. All of these architectures require unfortunately a
+    lot of memory -- one of models constructed for CIFAR10 in
+    \cite{attentive_gcnn} needs 72GBs of RAM.
+
+    All the works mentioned so far specify explicitly and precisely the
+    transformations the network is supposed to be equivariant to. In
+    \cite{augerino} on the other hand kind of transformation is stated, but the
+    network has to learn it's extent on it's own during usual training
+    procedure, e.g. model should be equivariant to rotations from
+    $\left[-\theta;\theta\right]$ interval but parameter $\theta$ is learned from
+    data.
+
+
+    The overall framework of GCNNs was summarized in \cite{kondor_trivedi} and
+    \cite{cohen2020general} in terms of group
+    theory, group actions, fourier analysis and representation theory.
+
+    \subsubsection{Lie group CNNs}
 
 \subsection{Image symmetries}
     \label{sec:transformations}
@@ -283,7 +323,6 @@
     ``image'' is understood to be an array of
     floating point numbers in range $\left[0;1\right]$ of shape $\left(3, H,
     W\right)$.
-    \subsection{Lightning operators}
     \subsubsection{Contrast}
     \newcommand\mcc{\mathcal{C}}
         The usual formula for changing image's contrast by factor of $a$ is
@@ -336,7 +375,7 @@
 
             \item Under map composition, set
                 $\mathcal{C} = \left\{\mathcal{C}_a | a\in \mathbb{R}_+\right\}$
-                forms a Lie group isomorphic to $\left(\mathcal{R}_+,\cdot \right)$ -- set of
+                forms a Lie group isomorphic to $\left(\mathbb{R}_+,\cdot \right)$ -- set of
                 positive real numbers with multiplication:
                 \begin{enumerate}
                     \item Closure:\\
