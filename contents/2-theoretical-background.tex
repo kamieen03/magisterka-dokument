@@ -142,9 +142,9 @@
     equivariant to translations:
     \begin{itemize}
         \item Convolutional layer is
-            equivariant outisde of image's borders. The border effects can to
+            equivariant outside of image's borders. The border effects can to
             some extent be fixed by padding image with values present in the
-            border or their avarages.
+            border or their averages.
         \item Max pooling layer is locally invariant -- that is small translations don't
             affect the layer's output, but translations which are multiplicities
             of window's size cause equivariant behaviour.
@@ -186,7 +186,7 @@
     dimensional tensors are then thought of as stacks of functions
     $F:G\to\mathbb{R}^C$, where $G$ is the group of transformations.
     Pictures \ref{fig:p4_rot} and \ref{fig:p4m_rot} show
-    feature maps for $p4$ -- group of translations and rotations and for 
+    feature maps for $p4$ -- group of translations and rotations and for
     $p4m$ -- group of
     translations, rotations and reflections.
     Convolutional filters of respective GCNNs are shaped in the same way
@@ -196,7 +196,7 @@
         \centering
         \includegraphics[width=0.7\textwidth]{p4_rot}
         \caption{On the left: schematic representation of feature map $F$ flowing through
-            p4-equivaraint GCNN. Computationally $F$ can be thought of as tensor of shape
+            p4-equivariant GCNN. Computationally $F$ can be thought of as tensor of shape
             $4\times H \times W$, where each of $4$ submaps represents one of
             rotations by $0\degree$, $90\degree$, $180\degree$ or $270\degree$.
             On the right, the same feature map rotated by
@@ -213,7 +213,7 @@
         \label{fig:p4m_rot}
     \end{figure}
 
-    \textbf{Lift} operation is a particual kind of convolution
+    \textbf{Lift} operation is a particular kind of convolution
     that transforms usual function stack $f$ on $\mathbb{Z}^2$ into
     function stack $F$ on group $G$. Computationally it takes as input
     usual 3d tensor (channel, height, width) and produces
@@ -247,20 +247,22 @@
     The proof goes similarly for equation \ref{eq:gcnn-lift}.
 
     The ideas contained in \cite{cohen2016} were further generalized to new
-    possible group of transformations, domains and neural network
+    possible groups of transformations, domains and neural network
     architectures. \cite{cohen_spherical_cnns, kondor_trivedi,
-    esteves_so3} describe covolutional layers equivaraint to
+    esteves_so3} describe convolutional layers equivariant to
     the group of 3-dimensional rotations $\mathit{SO}(3)$.
     They make heavy use of spherical harmonics for parametrization and
-    speedup of computation. Equivariance to $\mathit{SO}(3)$ is beneficial 
+    speedup of computation. Equivariance to $\mathit{SO}(3)$ is beneficial
     in any tasks regarding real world environments like depth estimation or 3d
     objects classification\cite{esteves_so3}. It helps also by
     prediction of properties of
-    microparticles described in terms of 3d-coordinates \cite{lieconv}.
+    molecules described in terms of 3d-coordinates \cite{lieconv}.
     In less obvious way
     $\mathit{SO}(3)$-equivariant GCNNs are used to process data whose natural
-    domain is sperical, e.g. Earth weather data or images from drone camera
+    domain is spherical, e.g. Earth weather data or images from drone camera
     \cite{cohen_spherical_cnns}.
+
+    
 
     \cite{bekkers2019, lieconv} propose general frameworks for
     GCNNs equivariant to any Lie group whereas \cite{cohen2016} only really
@@ -277,7 +279,7 @@
     properties related to lightning in image - contrast,
     brightness, color balance and gamma correction. Then geometric operators -
     rotations, scaling and shear - are presented.
-    Throghout this section and for the rest of the work,
+    Throughout this section and for the rest of the work,
     ``image'' is understood to be an array of
     floating point numbers in range $\left[0;1\right]$ of shape $\left(3, H,
     W\right)$.
@@ -393,7 +395,7 @@
             \foreach \n in {0.1, 0.25, 0.5, 1, 2, 4,10}
                 {\contrastpiccaption{custom}{105temp\n}{0.12}{\n}}
 
-        \caption{Differences between weighted and unweighted contrst change
+        \caption{Differences between weighted and unweighted contrast change
             operator. Top rows: $C_a$ operator (equation \ref{eq:contrast_old}.
             Bottom rows: $\mcc_a$ operator (equation \ref{eq:contrast} with
             clipping).}
@@ -511,7 +513,7 @@
         G_a(X) = X^a
         \label{eq:simple_gamma}
         \end{equation}
-        where $a \in \mathbb{R}_+$ and expoenetiation is done entrywise.
+        where $a \in \mathbb{R}_+$ and exponentiation is done entrywise.
         Figure \ref{fig:gamma_pics} shows examples of pictures with various gamma
         settings.
 
@@ -551,7 +553,7 @@
             \label{eq:gamma}
         \end{equation}
         where $\mathit{sign}(X)$ is a tensor of the same shape as $X$ containing
-        signs of it's entries and $|X|$ contains absolute values os entries.
+        signs of it's entries and $|X|$ contains absolute values of entries.
         Exponentiation is again computed entrywise. This way we separate signs
         and magnitudes.
         \par Unlike the three previous operators, $\mathcal{G}_a$ is nonlinear --
@@ -565,7 +567,7 @@
             \item $\mcg_a\left(\mcg_b\left(X\right)\right) =
                 \mcg_a\left(s\left(X\right)\cdot\left|X\right|^b\right) =
                 s\left(s\left(X\right)\cdot\left|X\right|^b\right)
-                \cdot\left|s\left(x\right)\cdot\left|X\right|^b\right|^a = 
+                \cdot\left|s\left(x\right)\cdot\left|X\right|^b\right|^a =
                 s\left(s\left(X\right)\right)\cdot\left|\left|X\right|^b\right|^a
                 = s\left(X\right)\cdot\left|X\right|^{ba} = \mcg_{ab}(X)$
         \end{itemize}
@@ -584,18 +586,18 @@
             \end{bmatrix}$$
         which transforms coordinates (2d vectors) by matrix multiplication.
         After rotating coordinates pixels of original image need to be resampled
-        in some way, which slightly distors the picture unless the rotation angle
-        is a multplie of $90\degree$. If we want rotations to preserve all
+        in some way, which slightly distorts the picture unless the rotation angle
+        is a multiple of $90\degree$. If we want rotations to preserve all
         information present in picture
-        we need to take care of appriopriate
+        we need to take care of appropriate
         expansion of borders and possible padding with 0s.
         It's also important from more theoretical point of view - expansion
         assures rotations compose nicely, that is form a group
         action on the space of images.
         Figure
-        \ref{fig:rotation_pics} illustrates neccesity of border expansion.
+        \ref{fig:rotation_pics} illustrates necessity of border expansion.
         Lack of expansion causes rotation composition to lose part of
-        information which moves outisde the border.
+        information which moves outside the border.
 
         \begin{figure}[h]
             \centering
@@ -611,13 +613,13 @@
         While filters present in GCNNs are higher dimensional than in regular
         CNNs, spatial interpretation of the last two dimensions remains
         unchanged. Therefore it makes sense to generalize $\mathcal{R}$ to
-        transform N-dimensional tensor by separetely rotating last two
+        transform N-dimensional tensor by separately rotating last two
         dimensions of every subtensor and stacking them in original shape.
         The same goes for scaling and shear transformations described next.
 
     \subsubsection{Scaling}
         Scaling is a zoom-in or zoom-out transformation in reference to the
-        center of the image. Scaling of cooridnates can be written as
+        center of the image. Scaling of coordinates can be written as
         \begin{equation}
             \mathcal{S}_k = \begin{bmatrix}
                 k & 0 \\
@@ -629,7 +631,7 @@
         Figure \ref{fig:scalings} shows varying degree of scaling.
         Note that by default scaling-up causes loss of
         information, so we might want to use image expansion as well.
-        However while using finite expansion (increasting image size by at most
+        However while using finite expansion (increasing image size by at most
         $\sqrt{2}$) we can make rotations into a group action,
         it's not the case for scaling. In order to preserve all information
         during scaling by factor of $k>1$, we would have to increase image
