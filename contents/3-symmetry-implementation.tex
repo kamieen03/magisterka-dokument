@@ -1,63 +1,123 @@
 \section{Image symmetry implementation}
+\newcommand\cbw{\mathit{CBW}}
+\newcommand\gbw{\mathit{GBW}}
 
 \subsection{ResNet}
-\subsection{Invariant models}
-\subsubsection{IN Layer}
+\subsection{Invariant Layers}
+\subsubsection{CBW Layer}
 As described in \ref{sec:theoretical_equiinv}, in order to construct a network
 invariant to some group of transformations, either the first layer has to be
 invariant or first layers have to be equivariant with an invariant layer
 following them. In this section we construct networks of both of these types.
 First we need to construct layers invariant to changes in
-contrast, brightness, color balance amd gamma correction as defined in
+contrast, brightness, color balance and gamma correction as defined in
 \ref{sec:transformations}. If possible it would be best to use a single function
 invariant to all of these transformations at once. Fortunately such layer
 exists. We show that simple instance normalization has this property.
-Instance normalization layer $\textit{IN}$ transforms each channel
+Instance normalization layer $\mathit{CBW}$ transforms each channel
 $X_c$ of image $X$ by:
-$$ \mathit{IN}(X_c) = \frac{X_c-E[X_c]}{\sigma(X_c)} $$
+$$ \mathit{CBW}(X_c) = \frac{X_c-E[X_c]}{\sigma(X_c)} $$
 where $E[X_c]$ is mean value of $X_c$.
 Each instance in batch is normalized separately.
-\textit{IN} is invariant to changes in contrast $\mcc$:
+\textit{CBW} is invariant to changes in contrast $\mcc$:
 \begin{align*}
-    \textit{IN}(\mcc_a(X)_c) &=
-    \frac{aX_c+(1-a)E[X]_c - E\left[aX_c+(1-a)E[X]_c\right]}{\sigma(aX_c+(1-a)E[X]_c)} = \\
-    &= \frac{aX_c+(1-a)E[X]_c - aE[X_c]-(1-a)E[X]_c}{a\sigma(X_c)} = \\
-    &= \frac{aX_c-aE[X_c]}{a\sigma(X_c)} = \\
-    &= \frac{X_c-E[X_c]}{\sigma(X_c)} = \\
-    &= \textit{IN}(X_c)
+    \mathit{CBW}(\mcc_a(X)_c) &=
+    \frac{aX_c+(1-a)E[X]_c - E\left[aX_c+(1-a)E[X]_c\right]}{\sigma(aX_c+(1-a)E[X]_c)} \\
+    &= \frac{aX_c+(1-a)E[X]_c - aE[X_c]-(1-a)E[X]_c}{a\sigma(X_c)} \\
+    &= \frac{aX_c-aE[X_c]}{a\sigma(X_c)} \\
+    &= \frac{X_c-E[X_c]}{\sigma(X_c)} \\
+    &= \mathit{CBW}(X_c)
 \end{align*}
 Similarly for brightness changes $\mathcal{B}$:
 \begin{align*}
-    \textit{IN}(\mathcal{B}_a(X)_c) &=
-    \frac{aX_c - E\left[aX\right]_c}{\sigma(aX_c)} = \\
-    &= \frac{aX-aE[X_c]}{a\sigma(X_c)} = \\
-    &= \frac{X_c-E[X_c]}{\sigma(X_c)} = \\
-    &= \textit{IN}(X_c)
+    \mathit{CBW}(\mathcal{B}_a(X)_c) &=
+    \frac{aX_c - E\left[aX\right]_c}{\sigma(aX_c)} \\
+    &= \frac{aX-aE[X_c]}{a\sigma(X_c)} \\
+    &= \frac{X_c-E[X_c]}{\sigma(X_c)} \\
+    &= \mathit{CBW}(X_c)
 \end{align*}
 Whereas color balance changes $\mathcal{W}$ act on individual channels by simple
 scaling so:
 \begin{align*}
-    \textit{IN}(\mathcal{W}_T(X)_c) &=
+    \mathit{CBW}(\mathcal{W}_T(X)_c) &=
     \frac{T_cX_c - E\left[T_cX_c\right]}{\sigma(T_cX_c)} = \\
     &= \frac{T_cX-T_cE[X_c]}{T_c\sigma(X_c)} = \\
     &= \frac{X_c-E[X_c]}{\sigma(X_c)} = \\
-    &= \textit{IN}(X_c)
+    &= \mathit{CBW}(X_c)
 \end{align*}
-Therefore any neural network with $\textit{IN}$ as first layer
+Therefore any neural network with $\mathit{CBW}$ as first layer
 makes the network invariant to considered image transformations.
 We denote this type of networks as In0-CBW-\{model-name\}, e.g. In0-CBW-Resnet18 or
 In0-CBW-Resnet34. Where 0 refers to placement of the invariant layer at the
-beginning of the network. We also consider invariant networks with $\textit{IN}$
+beginning of the network. We also consider invariant networks with $\mathit{CBW}$
 layer placed further down the processing stream. As mentioned earlier,
-constructing such network requires all layers before $\textit{IN}$ to be
+constructing such network requires all layers before $\mathit{CBW}$ to be
 equivariant. Since the equivariance to changes in color balance is not defined,
 we focus on contrast and brightness. In the next section \ref{sec:equ_models} we
 present variants of common layers like convolution or pooling equivariant to
 these transformations. We use these components to construct invariant networks
 denoted In1-CB-Resnet18, In2-CB-Resnet18, In1-CB-Resnet34 and In2-CB-Resnet34. 1 and 2
-again refer to placement of the $\textit{IN}$ layer -- $1$ means placement
+again refer to placement of the $\mathit{CBW}$ layer -- $1$ means placement
 after Resnet's first BasicBlock and 2 -- after Resnet's second
 BasicBlock.
+
+\subsubsection{GBW Layer}
+Just like $\cbw$ layer is invariant to changes in contrast,
+we can construct similar normalization layer $\gbw$ invariant to changes in
+gamma:
+\begin{equation}
+    \gbw(X_c) = \frac{\log{X_c}-E[\log{X_c}]}{\sigma(\log{X_c})}
+    \label{eq:GBW}
+\end{equation}
+where $\log(X)$ is entrywise logarithm of $X$. The base of the
+logarithm is not very important -- invariant behaviour doesn't depend on it's value.
+Now let us assume that we're given an image -- $3\times H \times W$ tensor --
+with strictly positive values..
+Operators $\mathcal{G}$, $\mathcal{B}$ and $\mathcal{W}$ act on it entrywise, so
+we can as well analyze transformation of individual channels of the image.
+Let $X$ be a single channel.
+We prove \ref{eq:GBW} is invariant to gamma, brightness and color balance
+changes. $\mathcal{B}$ and $\mathcal{W}$ transform single channel in the same
+way, by multiplication,
+so we only need proofs for $\mathcal{G}$ and $\mathcal{B}$:
+
+\begin{align*}
+    \gbw(\mathcal{G}_a(X)) &=
+    \gbw(X^a) \\
+    &= \frac{\log(X^a)-E[\log(X^a)]}{\sigma(\log(X^a))} \\
+    &= \frac{a\log(X)-E[a\log(X)]}{\sigma(a\log(X))} \\
+    &= \frac{a\log(X)-aE[\log(X)]}{a\sigma(\log(X))} \\
+    &= \frac{\log(X)-E[\log(X)]}{\sigma(\log(X))} \\
+    &= \gbw(X)
+\end{align*}
+
+\begin{align*}
+    \gbw(\mathcal{B}_a(X)) &=
+    \gbw(aX) \\
+    &= \frac{\log(aX)-E[\log(aX)]}{\sigma(\log(aX))} \\
+    &= \frac{\log(X)+\log(a)-E[\log(X)+\log(a)]}{\sigma(\log(X)+\log(a))} \\
+    &= \frac{\log(X)+\log(a)-E[\log(X)]-\log(a)}{\sigma(\log(X))} \\
+    &= \frac{\log(X)-E[\log(X)]}{\sigma(\log(X))} \\
+    &= \gbw(X)
+\end{align*}
+
+There is however slight technical issue with definition \ref{eq:GBW}.
+Since images contain values from interval $[0;1]$,
+taking their logarithm directly is impossible because of
+cells containing $0$. This problem is solved easily by adding some small constant value
+$\epsilon$ to every cell before computing logarithm. The exact definition
+is then in fact the following:
+\begin{equation}
+\gbw_{\epsilon}(X_c) =
+    \frac{\log(X_c+\epsilon)-E[\log(X_c+\epsilon)]}{\sigma(\log(X_c+\epsilon))}
+\end{equation}
+To be precise, this small correction breaks the invariance properties,
+%TODO: exact value of error
+but fortunately the difference between the two definitions is no
+greater than $0.5\%$ (see section TODO), so we
+can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
+
+
 
 \subsection{Equivariant models}
 \label{sec:equ_models}
@@ -90,7 +150,7 @@ normalization are equivariant to change of brightness:
     \item \textbf{Normalization} As shown above, common normalization methods are
         invariant to brightness changes. This stems mainly from division by
         standard deviation which is equivariant to $\mathcal{B}$. In fact since
-        the numerator of $\textit{IN}$ is equivariant to $\mathcal{B}_a$ --
+        the numerator of $\mathit{CBW}$ is equivariant to $\mathcal{B}_a$ --
         $aX_c-E[aX_c]=a(X_c-E[X_c])$ -- division by any factor involving $a$
         will break equivariance. For the same reason, we can't use any
         nonlinear operation like taking the square root.
