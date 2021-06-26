@@ -285,7 +285,8 @@
     compute everything with familiar operations on vectors. For example
     instead of computing distance between two rotation matrices directly, it
     suffices to compute the difference between the vectors corresponding to
-    these matrices in the Lie algebra.
+    these matrices in the Lie algebra. \cite{lieconv} and \cite{bekkers2019} are
+    descibed more closely in the next section \ref{sec:lie_cnn}.
 
     \cite{lie_transformer, attentive_gcnn, coattentive} add attention mechanisms
     and ensure they are also equivariant with respect to chosen group of
@@ -311,6 +312,44 @@
     theory, group actions, fourier analysis and representation theory.
 
     \subsubsection{Lie group CNNs}
+    \label{sec:lie_cnn}
+    The models described in \cite{lieconv} and \cite{bekkers2019} operate in
+    similar fashion.
+    First they lift the input tensor, so that it gains a new dimension
+    representing chosen group of transformations, just like in \cite{cohen2016}.
+    Then the signal goes through a series of typical neural components -- convolutions,
+    pooling layers, activation functions and normalization layers. The last
+    three layers are mostly the same as in regular CNNs. While
+    architecture of NN in \cite{bekkers2019} resembles traditional VGG,
+    \cite{lieconv} constructs ResNet-like models. However given equivariant
+    components from \cite{bekkers2019}, going from VGG to ResNet is purely a
+    matter of engineering and lining up the dimensions -- if both normal and
+    residual connections in ResNet are equivariant, then so is their sum.
+    Mathematical formulation of convolutions is also essentially the same.
+    Just like in \cite{cohen2016}, after the tensor is lifted, it takes values
+    on the group and convolutional layers compute the convolution with respect
+    to the group:
+    \begin{equation}
+        \int_G K(g^{-1}h)f(h)d\mu(h)
+    \end{equation}
+    where $G$ is the group, $K$ is convolutional kernel, $f$ is signal and $d\mu$ is the Haar
+    measure of group $G$ which makes the integration possible. However  given
+    the discrete nature of input signals, this integral also needs to be
+    discretized and turned into a sum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \subsection{Image symmetries}
     \label{sec:transformations}

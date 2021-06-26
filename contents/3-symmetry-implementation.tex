@@ -47,8 +47,8 @@ scaling so:
 \end{align*}
 Therefore any neural network with $\mathit{CBW}$ as first layer
 makes the network invariant to considered image transformations.
-We denote this type of networks as In0-CBW-\{model-name\}, e.g. In0-CBW-Resnet18 or
-In0-CBW-Resnet34. Where 0 refers to placement of the invariant layer at the
+We denote this type of networks as \{model-name\}+InCBW0, e.g. Plain+InCBW0 or
+RotEq+InCBW0. Where 0 refers to placement of the invariant layer at the
 beginning of the network. We also consider invariant networks with $\mathit{CBW}$
 layer placed further down the processing stream. As mentioned earlier,
 constructing such network requires all layers before $\mathit{CBW}$ to be
@@ -56,10 +56,9 @@ equivariant. Since the equivariance to changes in color balance is not defined,
 we focus on contrast and brightness. In the next section \ref{sec:equ_models} we
 present variants of common layers like convolution or pooling equivariant to
 these transformations. We use these components to construct invariant networks
-denoted In1-CB-Resnet18, In2-CB-Resnet18, In1-CB-Resnet34 and In2-CB-Resnet34. 1 and 2
-again refer to placement of the $\mathit{CBW}$ layer -- $1$ means placement
-after Resnet's first BasicBlock and 2 -- after Resnet's second
-BasicBlock.
+denoted InB1, InB2, InB3. Numbers again refer to
+placement of the $\mathit{CBW}$ layer -- in InBn the invariant layer is placed
+after Resnet's nth BasicBlock.
 
 \subsubsection{GBW Layer}
 Just like $\cbw$ layer is invariant to changes in contrast,
@@ -113,7 +112,7 @@ is then in fact the following:
 \end{equation}
 To be precise, this small correction breaks the invariance properties,
 %TODO: exact value of error
-but fortunately the difference between the two definitions is no
+but fortunately the difference between the two layers is no
 greater than $0.5\%$ (see section TODO), so we
 can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
 
