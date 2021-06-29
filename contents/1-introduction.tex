@@ -1,3 +1,39 @@
 \section{Introduction}
 \subsection{Background}
+The last couple years saw a rapidly surging interest in neural networks
+invariant to certain groups of transformations. This property
+is very much sought after because under mild assumptions it
+guarantees the output of the network won't change when transformed according to
+chosen
+transformations. Related desirable quality of neural networks is equivariance
+which on the other hand causes output to change in the same way the input
+changes. Growing body of work presents wide variety of
+techniques applied to ensure these properties.
+\\ However so far almost all of published papers focused exclusively on
+geometric symmetries of images, e.g. rotations, scaling or reflection. Transforms
+related to lightning of the image, like contrast or brightness have been largely
+ignored.
 \subsection{Objectives}
+In this work we address the following problems:
+\begin{enumerate}
+    \item Is constructing neural networks either equivariant or invariant to
+        lightning symmetries feasible? If so then how do they compare to networks
+        lacking these properties?
+    \item What's the degree of equivariance of such models? Is the equivariance
+        exact or does inevitable discretization impose significant error?
+        Does it differ significantly from equivariance to geometric
+        transformations?
+\end{enumerate}
+In order to answer these questions, we carry out the following tasks:
+\begin{enumerate}
+    \item Possibly extending notions of contrast, brightness, gamma correction 
+        and color balance from
+        images to tensors of arbitrary dimensionality.
+    \item Constructing neural network layers invariant to various lightning
+        symmetries.
+    \item Adapting existing architectures to ensure equivariance to some or
+        possibly all of mentioned lightning transformations.
+    \item Comparing constructed models with control group on image
+        classification tasks.
+    \item Estimating numerically degree of invariance and equivariance of constructed models.
+\end{enumerate}
