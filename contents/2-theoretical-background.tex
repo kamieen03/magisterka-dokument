@@ -23,7 +23,15 @@
         \textbf{Lie group}. Familiar examples of Lie groups include translation group
         $\left( \mathbb{R}^n, + \right)$ - set of real vectors with addition or
         $\left(GL(n,\mathbb{R}), \cdot \right)$ - set of real $n \times n$ matrices of nonzero determinant
-        with multiplication.\\\par
+        with multiplication.\\
+        Every Lie group $G$ has an associated structure $\mathfrak{g}$ called \textbf{Lie
+        algebra}. For our purposes we can treat it as a real vector space
+        $\mathbb{R}^n$ where $n$ equals the dimension of $G$ as manifold. The
+        connection between group and it's Lie algebra is established through two
+        maps. \textbf{Log} is a function from $G$ to $\mathfrak{g}$ and \textbf{Exp} is it's inverse
+        mapping elements of $\mathfrak{g}$ to elements of $G$.
+
+
         Just as we can form functions between sets assigning elements of one set to
         the elements of other, it's possible to construct functions between groups.
         Typically we are interested in functions preserving to some extent the group structure,
@@ -286,7 +294,7 @@
     instead of computing distance between two rotation matrices directly, it
     suffices to compute the difference between the vectors corresponding to
     these matrices in the Lie algebra. \cite{lieconv} and \cite{bekkers2019} are
-    descibed more closely in the next section \ref{sec:lie_cnn}.
+    described more closely in the next section \ref{sec:lie_cnn}.
 
     \cite{lie_transformer, attentive_gcnn, coattentive} add attention mechanisms
     and ensure they are also equivariant with respect to chosen group of
@@ -330,15 +338,58 @@
     on the group and convolutional layers compute the convolution with respect
     to the group:
     \begin{equation}
-        \int_G K(g^{-1}h)f(h)d\mu(h)
+        (Kf)(g) = \int_G K(g^{-1}h)f(h)d\mu(h)
+        \label{eq:lie_integral}
     \end{equation}
     where $G$ is the group, $K$ is convolutional kernel, $f$ is signal and $d\mu$ is the Haar
-    measure of group $G$ which makes the integration possible. However  given
+    measure of group $G$ which makes the integration possible. However given
     the discrete nature of input signals, this integral also needs to be
-    discretized and turned into a sum.
+    discretized and turned into a sum. This is achieved by sampling elements from $G$
+    according to it's Haar measure and computing sum over them:
+    \begin{equation}
+        (Kf)(g) = \frac{1}{N} \sum_{i=1}^N K(g^{-1}h_i)f(h_i)
+    \end{equation}
+    where $N$ is number of sampled elements. The lifting itself is done in
+    pretty much the same way, except that group $G$ in this case is just square
+    grid $\mathbb{Z}^2$.
 
-
-
+    All of these elements are common to both papers. Where the works
+    differ significantly is
+    the method by which convolutional kernels are constructed. Equation
+    \ref{eq:lie_integral} implies that kernels must have values defined for all
+    elements of group $G$. This requirement thankfully doesn't hold in practice
+    due to discretization so we could potentially model kernels just as in
+    regular GCNNs as tensors. Such representation unfortunately causes increase
+    in computation proportional to dimensionality (as manifold) of the
+    transformation group. And within single dimension it's proportional to
+    number of sample points. For this reason both papers model kernels as highly
+    parametrized continuous functions. \cite{lieconv} takes conventional
+    approach of deep learning -- every kernel is small neural network. It takes
+    as input vector in lie algebra of $G$ and gives values of an associated
+    elements of $G$ on output. \cite{bekkers2019} on the other hand uses fixed
+    basis of functions -- so called B-splines. B-splines are smooth, strictly positive
+    symmetric functions defined on all of $\mathbb{R}$. They also take as input
+    vectors from lie algebra and compute output as weighted sum of differently
+    centered individual B-splines. The weights are learnable parameters in this
+    case. The exact form of B-splines doesn't matter that much, though they very
+    closely resemble the gaussian function. More precisely if we are given
+    element $g$ for which we want to compute value of the kernel K, we do so by
+    equation
+    \begin{equation}
+        K(g) = \sum_{i=1}^N
+        c_i
+    B\left(\frac{\text{Log } g_i^{-1}g}{S}\right)
+    \end{equation}
+    where Log is the logarithmic map from $G$ to it's Lie algebra and $c_i$ are
+    learnable parameters. Each B-spline is
+    centered around some element $g_i$ and is scaled by scalar constant $S$. Note that
+    $\text{Log } g_i^{-1}g$ is really a vector $\mathbf{x}$ in $\mathbb{R}^n$,
+    whereas B-splines are defined for real numbers. Extension to vector spaces
+    is done via multiplication:
+    \begin{equation}
+        B(\mathbf{x}) = B(x_1)B(x_2)\cdots B(x_n)
+    \end{equation}
+    where $\mathbf{x} = \left[x_1,x_2,\dots,x_n\right]$.
 
 
 
