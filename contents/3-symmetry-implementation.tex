@@ -2,8 +2,6 @@
 \newcommand\cbw{\mathit{CBW}}
 \newcommand\gbw{\mathit{GBW}}
 
-\subsection{ResNet}
-TODO (?)
 \subsection{Invariant Layers}
 \subsubsection{CBW Layer}
 As described in \ref{sec:theoretical_equiinv}, in order to construct a network
@@ -123,8 +121,10 @@ can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
 \label{sec:equ_models}
 
 \subsubsection{Brightness equivariance}
+Recall that layer $f$ is equivaraint to
+change of brightness if $ f(aX) = af(X)$ for ant $a>0$.
 We begin with showing that common building blocks of CNNs except for
-normalization are equivariant to change of brightness:
+normalization fulfill this condition:
 \begin{itemize}
     \item \textbf{Convolution} is linear operation so $\mathit{Conv}(aX) =
         a\mathit{Conv}(X)$
@@ -160,9 +160,68 @@ normalization are equivariant to change of brightness:
         out mean value of input, we must divide by a constant. This might have
         adverse effect on network's training since there is no mechanism to keep
         values flowing through the network bounded, which might easily result in
-        gradient explosion. We compare norms of gradients in {\color{red}TODO}
+        gradient explosion. We compare norms of gradients in {\color{red}TODO}.
 \end{itemize}
-\subsubsection{Gamma and contrast equivariance}
+And so using common components with standard normalization scheme replaced by
+mean normalization we can build model equivariant to brightness changes. In
+experiments refer to this type of architecture as Brightness-Eq.
+
 \subsubsection{Geometric transformations equivariance}
+\label{sec:geom_eq}
+
+\subsubsection{Gamma and contrast equivariance}
+As expected from definitions, operators $\mathcal{C}$ and $\mathcal{G}$ are not
+as well-behaved as $\mathcal{B}$. While MaxPooling remains equivariant, the rest
+of described above layers doesn't (see experiments in section TODO).
+For the rest of this section we construct suitable
+convolutional layers similar to those of Lie
+GCNNs (section \ref{sec:lie_gcnn}),
+activation fucntions and
+normalization layers
+equivaraint to $\mathcal{C}$ and $\mathcal{G}$.
+
+\begin{itemize}
+\item
+The crucial part of pipeline is convolution layer. Note that nature of geometric
+and lighnig symmetries is fundamentally mathematically different. While the
+transforms coordinates or grid of image, the latter group acts posintwise on
+values present in the tensor without changing coordinates in any way.
+This property renders the implementation used in \ref{sec:geom_eq} unfit.
+Where in case of geometric symmetries different transformed locations
+on original grid are sampled, in case of lightning symmetries these woulb be the
+exact same locations. This in turn would cause creation of identical kernels and
+unncesery repetition of computation. Therefore it's obligatory to transoform the
+kernels in some other way consistent with abstract equations of lifting and convolution.
+We implement it using the transformations from transformation group.
+That is if we want the layer to be equivariant with respect to
+$\mathcal{G}_c$, then it's kernel $K$ assumes values at gamma level $c$ equal to
+base kernel gamma-corrected by factor of $c$:
+\begin{equation}
+    K(g) = K(x,c) = \mathcal{G}_c(K(x,0))
+\end{equation}
+
+\item Because of aggregation of gloabl mean of tensor in \ref{eq:contrast},
+    designing a nontrivial pointwise activation function equivaraint to \ref{eq:contrast}
+    might be impossible -- value in any given cell would automatically depend on
+    values of all other cells. Instead we test numerically equivariance of broad
+    range of popular activation functions and find that function Softsign
+    defined as $\mathit{Softsign}(x) = \frac{x}{1+|x|}$ performs fairly well.
+    Exact measurements can be found in section TODO.
+
+    Operator $\mathcal{G}$ proves to be more managable and exactly equivaraint
+    activation function can be found, though in the end it turns out to be
+    fairly obvious. If we want $f$ to be equivaraint to \ref{eq:gamma}, then in
+    particular it needs to fulfill condition $$f\left(x^c\right) =
+    f\left(x\right)^c$$
+    for any $x>0$ and
+    $c > 0$. To obtain analytic form of $f$
+    let $$f(x_0)=y_0$$ for some constants $x_0 \neq 1$ and $y_0$.
+    Then $$f\left(x_0^c\right) = y_0^c$$ Now we can treat $x_0^c$ as the argument and set
+    $x_0^c = z$, so $$f(z) = y_0^{\log_{x_0}z}$$.
+\end{itemize}
+
+
+
+
 
 
