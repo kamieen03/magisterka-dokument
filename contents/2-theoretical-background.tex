@@ -14,10 +14,11 @@
                 written as $g^{-1}$
     \end{enumerate}
     \par Group $G$ might also posses additional structure. A \textbf{topological group}
-        is a group together with a topology on G, such that $G$'s binary operation:\\
-        \hspace*{0.5cm} $\bullet: G \times G \to G, \left(g,h \right) \mapsto g\bullet h$ \\
+        is a group together with a topology on the underlying set,
+        such that it's binary operation:\\
+        $$\bullet: G \times G \to G, \hspace*{1em} \left(g,h \right) \mapsto g\bullet h$$
         and inversion map: \\
-        \hspace*{0.5cm} ${}^{-1}: G \to G, g \mapsto g^{-1}$ \\
+        $${}^{-1}: G \to G, \hspace*{1em} g \mapsto g^{-1}$$
         are continuous. Additionally if the underlying topological structure
         is some smooth n-manifold and both maps are smooth, the group is called
         \textbf{Lie group}. Familiar examples of Lie groups include translation group
@@ -63,20 +64,19 @@
         rotations - action of $SO(n,\mathbb{R})$ given by $r \cdot x = Rx$ where
         $R$ is matrix representation of rotation and
         multiplication on the right is matrix-vector multiplication.\\
-        Now suppose we are given some function $f:G\to \mathbb{R}^n$.
+        Now suppose we are given some function (not necessarily homomorphism)
+        $f:G\to \mathbb{R}^n$.
         We can define natural action of $G$ on set of such functions by:
         \begin{equation}
             (g\cdot f)(x) = f(g^{-1}\bullet x)
             \label{eq:action_on_function}
         \end{equation}
         It's a group action because:
-        \begin{align*}
-            & (e\cdot f)(x) = f(e\bullet x) = f(x) \\
-            & \mbox{and} \\
-            & ((g\bullet h) \cdot f)(x) = f((g\bullet h)^{-1} \bullet x) =
+        $$(e\cdot f)(x) = f(e^{-1}\bullet x) = f(e \bullet x) = f(x)$$
+        and
+        $$ ((g\bullet h) \cdot f)(x) = f((g\bullet h)^{-1} \bullet x) =
             f(h^{-1}\bullet g^{-1} \bullet x) = (h\cdot f)(g^{-1} \bullet x) =
-            (g\cdot(h \cdot f))(x)
-        \end{align*}
+            (g\cdot(h \cdot f))(x)$$
 
 
 
@@ -121,7 +121,7 @@
         we need to break equivariance at some point. Like for example in classification,
         where final layers are often fully connected and not equivariant. \par
         The easiest way to assert the network is invariant to some transformation
-        is making it's very first layer $f_0$ invariant, then:
+        is making it's very first layer $f_0$ invariant:
         \begin{align*}
             \mathcal{N}(g\cdot x)
             &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x)  \\
@@ -147,7 +147,7 @@
     The primary example of equivariant neural networks are convolutional neural
     networks which are (roughly) equivariant to translations. The $4$ basic
     components of CNN are convolutional layers, pooling layers, normalization
-    layers and activation functions.  These common building are approximately
+    layers and activation functions.  These common building blocks are approximately
     equivariant to translations:
     \begin{itemize}
         \item Convolutional layer is
@@ -163,14 +163,14 @@
         \item Usual normalization schemes like batch or instance
             normalization depend on global statistics
             like mean and standard deviation which change slightly during
-            translation so their are not exactly equivariant. However given
-            proper padding method these changes can be very small if
+            translation so they are not exactly equivariant. However given
+            proper padding method these changes can be made very small if
             translation is not too big.
         \item Activation functions are applied pointwise so, they are
             perfectly equivariant outside borders.
     \end{itemize}
     Of course the most crucial parts of CNN are convolution layers. At each
-    layer CNN takes as input 3-dimensional tensor which can be thought of as a
+    layer CNN takes as input 3D tensor which can be thought of as a
     stack of functions $f:\mathbb{Z}^2\to\mathbb{R}^C$ where $C$ is number of channels.
     Convolutional layer correlates it with a set of filters $\psi^i$
     and each filter can also be thought of as a stack of functions
@@ -191,7 +191,7 @@
     lifting tensors the network operates on to higher dimensions.
     Just like traditionally the last two
     dimensions encode height and width, these new dimensions can
-    encode information about the chosen group of transformations. These higher
+    encode information about the chosen group of transformations. Higher
     dimensional tensors are then thought of as stacks of functions
     $F:G\to\mathbb{R}^C$, where $G$ is the group of transformations.
     Pictures \ref{fig:p4_rot} and \ref{fig:p4m_rot} show
@@ -232,6 +232,8 @@
         \mathit{Lift}(f)(g) = F(g) = (f\star\psi^i)(g) = \sum_{y\in \mathbb{Z}^2}\sum_{c=1}^C
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
+    Note that $g^{-1}y$ is an element of $G$, so filters have values defined on
+    the group.
     Once the input tensor is lifted, in consecutive convolutional layers it
     undergoes \textbf{group convolutions}:
     \begin{equation}
@@ -239,7 +241,7 @@
         F(g) = (f\star\psi^i)(g) = \sum_{y\in G}\sum_{c=1}^C
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
-    Note that while in equation \ref{eq:cnn} computation is done by sliding
+    While in equation \ref{eq:cnn} computation is done by sliding
     $y$ on $\mathbb{Z}^2$, in equation \ref{eq:gcnn} it's replaced by more
     general iteration on all group elements. If we replace $G$ by $\mathbb{Z}^2$
     and set $g=x$ we obtain equation \ref{eq:cnn} back since in $\mathbb{Z}^2$,
@@ -253,6 +255,8 @@
         & = (f\star\psi)(h^{-1}g) &  \\
         & = (h\cdot(f\star\psi))(g)
     \end{align*}
+    Iterating over $hy$ is the same as iterating over $y$ as both mean simply
+    summation over all of elements of $G$.
     The proof goes similarly for equation \ref{eq:gcnn-lift}.
 
 \subsubsection{Related work}
@@ -260,13 +264,13 @@
     possible groups of transformations, domains and neural network
     architectures. \cite{cohen_spherical_cnns, kondor_trivedi,
     esteves_so3} describe convolutional layers equivariant to
-    the group of 3-dimensional rotations $\mathit{SO}(3)$.
+    the group of 3D rotations $\mathit{SO}(3)$.
     They make heavy use of spherical harmonics for parametrization and
     speedup of computation. Equivariance to $\mathit{SO}(3)$ is beneficial
-    in any tasks regarding real world environments like depth estimation or 3d
-    objects classification\cite{esteves_so3}. It helps also by
+    in any tasks regarding real world environments like depth estimation or 3D
+    objects classification \cite{esteves_so3}. It helps also at
     prediction of properties of
-    molecules described in terms of 3d-coordinates \cite{lieconv}.
+    molecules described in terms of 3D-coordinates \cite{lieconv}.
     In less obvious way
     $\mathit{SO}(3)$-equivariant GCNNs are used to process data whose natural
     domain is spherical, e.g. Earth weather data or images from drone camera
@@ -274,7 +278,7 @@
 
     Another particularly well-researched group of transformations is scaling.
     \cite{deep_scale_spaces} formalizes problem in terms of semigroup theory and
-    uses gaussian kernels together with down sampling to eliminate higher
+    uses gaussian kernels together with downsampling to eliminate higher
     frequencies which would otherwise might cause artifacts in image.
     \cite{bekkers2019} constructs general architecture equivariant to any (Lie) group
     of transformations specified by programmer. The scaling is then represented abstractly as
@@ -286,9 +290,7 @@
     \cite{bekkers2019, lieconv, lie_transformer} propose general frameworks for
     GCNNs equivariant to any Lie group. In order to parametrize the manifold and
     make sense of distances on it, they use Lie algebras and exponential maps.
-    For the purpose of these papers, Lie algebras can essentially be treated as
-    ordinary finite dimensional vector spaces $\mathbb{R}^n$. Exponential map
-    is a smooth map from Lie algebra to the associated Lie group. This way
+    This way
     instead of dealing with often unintuitive structure of Lie groups, we can
     compute everything with familiar operations on vectors. For example
     instead of computing distance between two rotation matrices directly, it
@@ -303,7 +305,7 @@
     \cite{attentive_gcnn, coattentive} operate on discrete (finite) groups of
     transformations and use circulant attention matrices to make them
     equivariant to rotations. All of these architectures require unfortunately a
-    lot of memory -- one of models constructed for CIFAR10 in
+    lot of memory -- one of models constructed for CIFAR10 dataset in
     \cite{attentive_gcnn} needs 72GBs of RAM.
 
     All the works mentioned so far specify explicitly and precisely the
@@ -311,25 +313,25 @@
     \cite{augerino} on the other hand kind of transformation is stated, but the
     network has to learn it's extent on it's own during usual training
     procedure, e.g. model should be equivariant to rotations from
-    $\left[-\theta;\theta\right]$ interval but parameter $\theta$ is learned from
-    data.
+    $\left[-\theta;\theta\right]$ interval but parameter $\theta$ is to be learned from
+    data alone.
 
 
     The overall framework of GCNNs was summarized in \cite{kondor_trivedi} and
     \cite{cohen2020general} in terms of group
     theory, group actions, fourier analysis and representation theory.
 
-    \subsubsection{Lie group CNNs}
-    \label{sec:lie_cnn}
+    \subsubsection{Lie GCNNs}
+    \label{sec:lie_gcnn}
     The models described in \cite{lieconv} and \cite{bekkers2019} operate in
     similar fashion.
     First they lift the input tensor, so that it gains a new dimension
     representing chosen group of transformations, just like in \cite{cohen2016}.
     Then the signal goes through a series of typical neural components -- convolutions,
     pooling layers, activation functions and normalization layers. The last
-    three layers are mostly the same as in regular CNNs. While
+    three types of layers are mostly the same as in regular CNNs. While
     architecture of NN in \cite{bekkers2019} resembles traditional VGG,
-    \cite{lieconv} constructs ResNet-like models. However given equivariant
+    \cite{lieconv} constructs ResNet-like models. Given equivariant
     components from \cite{bekkers2019}, going from VGG to ResNet is purely a
     matter of engineering and lining up the dimensions -- if both normal and
     residual connections in ResNet are equivariant, then so is their sum.
@@ -359,14 +361,15 @@
     the method by which convolutional kernels are constructed. Equation
     \ref{eq:lie_integral} implies that kernels must have values defined for all
     elements of group $G$. This requirement thankfully doesn't hold in practice
-    due to discretization so we could potentially model kernels just as in
-    regular GCNNs as tensors. Such representation unfortunately causes increase
+    due to discretization so we could potentially model kernels as tensors just
+    like in
+    regular GCNNs. Such representation however causes increase
     in computation proportional to dimensionality (as manifold) of the
     transformation group. And within single dimension it's proportional to
     number of sample points. For this reason both papers model kernels as highly
     parametrized continuous functions. \cite{lieconv} takes conventional
     approach of deep learning -- every kernel is small neural network. It takes
-    as input vector in lie algebra of $G$ and gives values of an associated
+    as input a vector in Lie algebra of $G$ and gives values of an associated
     elements of $G$ on output. \cite{bekkers2019} on the other hand uses fixed
     basis of functions -- so called B-splines. B-splines are smooth, strictly positive
     symmetric functions defined on all of $\mathbb{R}$. They also take as input
@@ -416,7 +419,8 @@
     W\right)$.
     \subsubsection{Contrast}
     \newcommand\mcc{\mathcal{C}}
-        The usual formula for changing image's contrast by factor of $a$ is
+        Though notion of contrast has many different definitions and variations,
+        one popular formula \cite{torch_contrast, tf_contrast} for it's adjustment by factor of $a$ is
         \begin{equation}
             \label{eq:contrast_old}
         C_a(X) = \mathit{CLIP}\left(a\cdot X + (1-a) \cdot E\left[ \frac{w_1X_r
@@ -444,7 +448,7 @@
             \label{eq:contrast}
             \mathcal{C}_a(x) = ax + (1-a) \mu_x
         \end{equation}
-        where $\mu_x$ is the average value of whole tensor. It's however worth
+        where $\mu_x$ is the average value of whole tensor. It's worth
         noting, that removing the clipping changes the general behavior of the
         transformation.  While it remains more or less unchanged for values of
         $a$ close to $1$, differences grow as me move further away from identity
@@ -526,7 +530,7 @@
                 {\contrastpiccaption{custom}{105temp\n}{0.12}{\n}}
 
         \caption{Differences between weighted and unweighted contrast change
-            operator. Top rows: $C_a$ operator (equation \ref{eq:contrast_old}.
+            operator. Top rows: $C_a$ operator (equation \ref{eq:contrast_old}).
             Bottom rows: $\mcc_a$ operator (equation \ref{eq:contrast} with
             clipping).}
         \label{fig:contrast_pics}
@@ -550,7 +554,7 @@
         It's worth noting, that in this case removing the clipping step doesn't change
         the definition so significantly. In fact both formulas agree as long as $a\leq 1$,
         that is as along as brightness is not increased.
-        Picture \label{fig:brightness_pics} shows images with brightness varying
+        Picture \ref{fig:brightness_pics} shows images with brightness varying
         according to equation \ref{eq:bright_old}.
 
 
@@ -594,16 +598,18 @@
             \left[T_r X_r, T_g X_g, T_b X_b \right]
         \end{equation}
         where $T_r, T_g, T_b$ are RGB components corresponding to temperature $T$.
-        For example for $T=1000K$, $T_r, T_g$ and $T_b$ equal $1, 0.0401$ and $0$ respectively.
-        $T$ ranges from $1000K$ to $40000K$ with steps of $100$
-        though there is not much change after the $15000$ threshold.
+        For example for $T=1000K$, $T_r, T_g$ and $T_b$ equal $1, 0.0401$ and $0$ respectively
+        \cite{imgaug_color_balance}.
+        $T$ ranges from $1000K$ to $40000K$ with steps of $100K$
+        though there is not much change after the $15000K$ threshold.
         Figure \ref{fig:color_balance} shows part of possible temperature spectrum
         together with colors characterising temperatures in terms of uint8 RGB triplets.
         Picture \ref{fig:cb_pics} shows images with varying color balance.
 
         \begin{figure}[h]
             \includegraphics[width=\textwidth]{color_balance}
-            \caption{}
+            \caption{Part of spectrum of color balance temperatures and colors
+            with steps of 200K.}
             \label{fig:color_balance}
         \end{figure}
 
@@ -638,12 +644,15 @@
         networks invariant to changes in color balance.
 
     \subsubsection{Gamma correction}
-        Gamma correction of image X is defined as
+        In virtually all computer vision libraries \cite{skimage_gamma,
+        cv_gamma, torch_gamma}
+        gamma correction of image X is defined as
         \begin{equation}
-        G_a(X) = X^a
+            G_{a,c}(X) = cX^a
         \label{eq:simple_gamma}
         \end{equation}
-        where $a \in \mathbb{R}_+$ and exponentiation is done entrywise.
+        where $c$ and $a \in \mathbb{R}_+$ and exponentiation is done entrywise.
+        Multiplication by $c$ is often optional and we drop it for simplicity.
         Figure \ref{fig:gamma_pics} shows examples of pictures with various gamma
         settings.
 
@@ -679,10 +688,10 @@
         equation \ref{eq:simple_gamma} by:
         \newcommand\mcg{\mathcal{G}}
         \begin{equation}
-            \mathcal{G}_a(X) = \mathit{sign}(X)\cdot|X|^a
+            \mathcal{G}_a(X) = s(X)\cdot|X|^a
             \label{eq:gamma}
         \end{equation}
-        where $\mathit{sign}(X)$ is a tensor of the same shape as $X$ containing
+        where $s(X)$ is a tensor of the same shape as $X$ containing
         signs of it's entries and $|X|$ contains absolute values of entries.
         Exponentiation is again computed entrywise. This way we separate signs
         and magnitudes.
@@ -715,7 +724,7 @@
                 \sin\theta &  \cos\theta
             \end{bmatrix}$$
         which transforms coordinates (2d vectors) by matrix multiplication.
-        After rotating coordinates pixels of original image need to be resampled
+        After rotating coordinates, pixels of original image need to be resampled
         in some way, which slightly distorts the picture unless the rotation angle
         is a multiple of $90\degree$. If we want rotations to preserve all
         information present in picture
@@ -749,7 +758,8 @@
 
     \subsubsection{Scaling}
         Scaling is a zoom-in or zoom-out transformation in reference to the
-        center of the image. Scaling of coordinates can be written as
+        center of the image. Scaling of coordinates can be written as scalar
+        matrix
         \begin{equation}
             \mathcal{S}_k = \begin{bmatrix}
                 k & 0 \\
@@ -766,7 +776,7 @@
         it's not the case for scaling. In order to preserve all information
         during scaling by factor of $k>1$, we would have to increase image
         size by the same factor. For this reason scaling is often modeled not as
-        a group, but rather as a semi-group or monoid. However it's not really any
+        a group, but rather as a semi-group or monoid. This however is not really any
         obstacle -- what matters is that locally it still has structure of a Lie
         group.
 

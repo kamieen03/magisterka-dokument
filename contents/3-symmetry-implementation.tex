@@ -4,15 +4,19 @@
 
 \subsection{Invariant Layers}
 \subsubsection{CBW Layer}
-As described in \ref{sec:theoretical_equiinv}, in order to construct a network
+As described in section \ref{sec:theoretical_equiinv}, in order to construct a network
 invariant to some group of transformations, either the first layer has to be
 invariant or first layers have to be equivariant with an invariant layer
 following them. In this section we construct networks of both of these types.
 First we need to construct layers invariant to changes in
 contrast, brightness, color balance and gamma correction as defined in
 \ref{sec:transformations}. If possible it would be best to use a single function
-invariant to all of these transformations at once. Fortunately such layer
-exists. We show that simple instance normalization has this property.
+invariant to all of these transformations at once. While we weren't able to come
+up with such layer, we can do the next best thing and build layers invariant to
+three of these transformations.
+We show that standard instance normalization is invariant to contrast, brightness
+and color balance changes.
+
 Instance normalization layer $\mathit{CBW}$ transforms each channel
 $X_c$ of image $X$ by:
 $$ \mathit{CBW}(X_c) = \frac{X_c-E[X_c]}{\sigma(X_c)} $$
@@ -56,8 +60,8 @@ we focus on contrast and brightness. In the next section \ref{sec:equ_models} we
 present variants of common layers like convolution or pooling equivariant to
 these transformations. We use these components to construct invariant networks
 denoted InB1, InB2, InB3. Numbers again refer to
-placement of the $\mathit{CBW}$ layer -- in InBn the invariant layer is placed
-after ResNet's nth BasicBlock.
+placement of the $\mathit{CBW}$ layer -- in InB$k$ the invariant layer is placed
+after ResNet's $k$th BasicBlock.
 
 \subsubsection{GBW Layer}
 Just like $\cbw$ layer is invariant to changes in contrast,
@@ -104,7 +108,7 @@ Since images contain values from interval $[0;1]$,
 taking their logarithm directly is impossible because of
 cells containing $0$. This problem is solved easily by adding some small constant value
 $\epsilon$ to every cell before computing logarithm. The exact definition
-is then in fact the following:
+is then the following:
 \begin{equation}
 \gbw_{\epsilon}(X_c) =
     \frac{\log(X_c+\epsilon)-E[\log(X_c+\epsilon)]}{\sigma(\log(X_c+\epsilon))}
@@ -112,8 +116,11 @@ is then in fact the following:
 To be precise, this small correction breaks the invariance properties,
 %TODO: exact value of error
 but fortunately the difference between the two layers is no
-greater than $0.5\%$ (see section TODO), so we
+bigger than $0.5\%$ (see section TODO), so we
 can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
+\\ Due to logarithm only being defined for positive values, we place
+$\mathit{GBW}$ layer only at the very beginning of networks. This type of models
+is marked as \{model-name\}+InGBW0.
 
 
 
@@ -122,7 +129,7 @@ can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
 
 \subsubsection{Brightness equivariance}
 Recall that layer $f$ is equivariant to
-change of brightness if $ f(aX) = af(X)$ for ant $a>0$.
+change of brightness if $ f(aX) = af(X)$ for all $a>0$.
 We begin with showing that common building blocks of CNNs except for
 normalization fulfill this condition:
 \begin{itemize}
@@ -150,11 +157,11 @@ normalization fulfill this condition:
         In particular we can use usual ReLU function.
     \item \textbf{Normalization} As shown above, instance normalization is
         invariant to brightness changes. It's easy to see that it also holds
-        for Batch Normalization. This stems mainly from division by
+        for BatchNormalization. This stems mainly from division by
         standard deviation which is equivariant to $\mathcal{B}$. In fact
         the numerator of $\mathit{CBW}$ is also equivariant to $\mathcal{B}_a$:
         $aX_c-E[aX_c]=a(X_c-E[X_c])$, so division by any factor involving $a$
-        will break equivariance. For the same reason, we can't use pass the
+        will break equivariance. For the same reason, we can't pass the
         numerator through any nonlinear function, e.g. square root.
         Therefore if we want the normalization to zero
         out mean value of input, we must divide by a constant. This might have
@@ -163,44 +170,49 @@ normalization fulfill this condition:
         gradient explosion. We compare norms of gradients in {\color{red}TODO}.
 \end{itemize}
 And so using common components with standard normalization scheme replaced by
-mean normalization we can build model equivariant to brightness changes. In
+mean normalization we can build model equivariant to brightness changes
+$\mathcal{B}$. In
 experiments refer to this type of architecture as Brightness-Eq.
 
-\subsubsection{Lie GCNN equivariant model}
-We implement Lie GCNN based on B-splines \ref{bekkers2019} in PyTorch framework.
-The only tough part is really only
+\subsubsection{Lie GCNN equivariant models}
+For geometric transformations, we implement Lie GCNN
+based on B-splines \cite{bekkers2019} in PyTorch framework.
+The only tough part is really
 implementing general operations of lifting and group convolution.
-After that implementing model to any group only requires implementing operations
+After that implementing model equivariant to any group only requires implementing operations
 of these group -- taking inverse, multiplication, distance, etc.
 In this way we construct models equivariant to well researched groups like
 rotation and
 scaling groups as well as shear transform which hasn't come up in literature
 review.
+\\
 
-
-As expected from definitions, operators $\mathcal{C}$ and $\mathcal{G}$ are not
-as well-behaved as $\mathcal{B}$. While MaxPooling remains equivariant, the rest
-of described above layers doesn't (see experiments in section TODO).
+We now consider remaining lightning symmetries $\mathcal{C}$ and $\mathcal{G}$.
+Es expected, they are not
+as well-behaved as $\mathcal{B}$. While MaxPooling is also equivariant to them,
+the rest
+of described above layers isn't (see experiments in section TODO).
 For the rest of this section we construct suitable
 convolutional layers similar to those of Lie
 GCNNs (section \ref{sec:lie_gcnn}),
 activation functions and
 normalization layers
-equivariant to $\mathcal{C}$ and $\mathcal{G}$.
+equivariant to $\mathcal{C}$ and $\mathcal{G}$ operators.
 
 \begin{itemize}
 \item
-The crucial part of pipeline is convolution layer. Note that nature of geometric
-and lightning symmetries is fundamentally mathematically different. While the
-transforms coordinates or grid of image, the latter group acts pointwise on
+The crucial part of pipeline is convolution layer. Nature of geometric
+and lightning symmetries is fundamentally mathematically different. While
+the first
+transform coordinates or grid of image, the latter group acts pointwise on
 values present in the tensor without changing coordinates in any way.
 This property renders the implementation used for geometric models unfit.
 Where in case of geometric symmetries different transformed locations
 on original grid are sampled, in case of lightning symmetries these would be the
 exact same locations. This in turn would cause creation of identical kernels and
 unnecessary repetition of computation. Therefore it's obligatory to transform the
-kernels in some other way consistent with abstract equations of lifting and convolution.
-We implement it using the transformations from transformation group.
+kernels in some other way consistent with equations of lifting and convolution.
+We implement such mechanism using the transformations from transformation group.
 That is if we want the layer to be equivariant with respect to
 $\mathcal{G}_c$, then it's kernel $K$ assumes values at gamma level $c$ equal to
 base kernel gamma-corrected by factor of $c$:
@@ -208,8 +220,9 @@ base kernel gamma-corrected by factor of $c$:
     K(g) = K(x,c) = \mathcal{G}_c(K(x,0))
 \end{equation}
 
-\item Because of aggregation of global mean of tensor in \ref{eq:contrast},
-    designing a nontrivial pointwise activation function equivariant to \ref{eq:contrast}
+\item Because of aggregation of global mean of tensor in contrast equation \ref{eq:contrast},
+    designing a nontrivial pointwise activation function equivariant to
+    $\mathcal{C}$ operator
     might be impossible -- value in any given cell would automatically depend on
     values of all other cells. Instead we test numerically equivariance of broad
     range of popular activation functions and find that function Softsign
@@ -218,7 +231,7 @@ base kernel gamma-corrected by factor of $c$:
 
     Operator $\mathcal{G}$ proves to be more manageable and exactly equivariant
     activation function can be found, though in the end it turns out to be
-    fairly obvious. If we want $f$ to be equivariant to \ref{eq:gamma}, then in
+    fairly obvious. If we want $f$ to be equivariant to gamma equation \ref{eq:gamma}, then in
     particular it needs to fulfill condition $$f\left(x^c\right) =
     f\left(x\right)^c$$
     for any $x>0$ and
@@ -230,10 +243,11 @@ base kernel gamma-corrected by factor of $c$:
     but $\log_{x_0}{y_0}$ is constant, so $f$ is unique power function passing
     through $\left(x_0, y_0\right)$. For negative arguments this definition can
     be extended either symmetrically ($f(x)=f(-x)$) or antisymmetrically ($f(-x)
-    = -f(x)$). We choose the latter option too enable negative values of
-    function After some trial and error we arrive at the final definition $$f_a(x)
+    = -f(x)$). We choose the latter option to enable function to assume negative
+    values.
+    After some trial and error we arrive at the final definition $$f_a(x)
     = s(x)|x|^a$$ with $s$ representing the sign of $x$.
-    In implementation, in order to make $f$ slowly growing, we
+    In implementation, in order to make $f$ slowly increasing, we
     choose $a=0.3$. $f_{0.3}$ is shown in the figure \ref{fig:f03}.
 
     \begin{figure}[h]
@@ -244,12 +258,14 @@ base kernel gamma-corrected by factor of $c$:
     \end{figure}
 \item Similarly to brightness, the contrast operator $\mathcal{C}$ is
     equivariant to mean normalization and invariant to standard normalization,
-    do to build equivariant model, we need to use the first layer.
+    so to build an equivariant model, we need to use the mean normalization.
 
     Situation is a lot more complicated with gamma correction. Due to it's
     highly nonlinear nature, operator
     $\mathcal{G}$ doesn't seem to be equivariant to any
-    commonly used normalization layer.
+    commonly used normalization layer. We test models with and without
+    BatchNormalization and compare their equivariance degrees and various stages
+    in the network.
 \end{itemize}
 
 
