@@ -57,7 +57,7 @@ present variants of common layers like convolution or pooling equivariant to
 these transformations. We use these components to construct invariant networks
 denoted InB1, InB2, InB3. Numbers again refer to
 placement of the $\mathit{CBW}$ layer -- in InBn the invariant layer is placed
-after Resnet's nth BasicBlock.
+after ResNet's nth BasicBlock.
 
 \subsubsection{GBW Layer}
 Just like $\cbw$ layer is invariant to changes in contrast,
@@ -121,7 +121,7 @@ can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
 \label{sec:equ_models}
 
 \subsubsection{Brightness equivariance}
-Recall that layer $f$ is equivaraint to
+Recall that layer $f$ is equivariant to
 change of brightness if $ f(aX) = af(X)$ for ant $a>0$.
 We begin with showing that common building blocks of CNNs except for
 normalization fulfill this condition:
@@ -166,31 +166,39 @@ And so using common components with standard normalization scheme replaced by
 mean normalization we can build model equivariant to brightness changes. In
 experiments refer to this type of architecture as Brightness-Eq.
 
-\subsubsection{Geometric transformations equivariance}
-\label{sec:geom_eq}
+\subsubsection{Lie GCNN equivariant model}
+We implement Lie GCNN based on B-splines \ref{bekkers2019} in PyTorch framework.
+The only tough part is really only
+implementing general operations of lifting and group convolution.
+After that implementing model to any group only requires implementing operations
+of these group -- taking inverse, multiplication, distance, etc.
+In this way we construct models equivariant to well researched groups like
+rotation and
+scaling groups as well as shear transform which hasn't come up in literature
+review.
 
-\subsubsection{Gamma and contrast equivariance}
+
 As expected from definitions, operators $\mathcal{C}$ and $\mathcal{G}$ are not
 as well-behaved as $\mathcal{B}$. While MaxPooling remains equivariant, the rest
 of described above layers doesn't (see experiments in section TODO).
 For the rest of this section we construct suitable
 convolutional layers similar to those of Lie
 GCNNs (section \ref{sec:lie_gcnn}),
-activation fucntions and
+activation functions and
 normalization layers
-equivaraint to $\mathcal{C}$ and $\mathcal{G}$.
+equivariant to $\mathcal{C}$ and $\mathcal{G}$.
 
 \begin{itemize}
 \item
 The crucial part of pipeline is convolution layer. Note that nature of geometric
-and lighnig symmetries is fundamentally mathematically different. While the
-transforms coordinates or grid of image, the latter group acts posintwise on
+and lightning symmetries is fundamentally mathematically different. While the
+transforms coordinates or grid of image, the latter group acts pointwise on
 values present in the tensor without changing coordinates in any way.
-This property renders the implementation used in \ref{sec:geom_eq} unfit.
+This property renders the implementation used for geometric models unfit.
 Where in case of geometric symmetries different transformed locations
-on original grid are sampled, in case of lightning symmetries these woulb be the
+on original grid are sampled, in case of lightning symmetries these would be the
 exact same locations. This in turn would cause creation of identical kernels and
-unncesery repetition of computation. Therefore it's obligatory to transoform the
+unnecessary repetition of computation. Therefore it's obligatory to transform the
 kernels in some other way consistent with abstract equations of lifting and convolution.
 We implement it using the transformations from transformation group.
 That is if we want the layer to be equivariant with respect to
@@ -200,25 +208,50 @@ base kernel gamma-corrected by factor of $c$:
     K(g) = K(x,c) = \mathcal{G}_c(K(x,0))
 \end{equation}
 
-\item Because of aggregation of gloabl mean of tensor in \ref{eq:contrast},
-    designing a nontrivial pointwise activation function equivaraint to \ref{eq:contrast}
+\item Because of aggregation of global mean of tensor in \ref{eq:contrast},
+    designing a nontrivial pointwise activation function equivariant to \ref{eq:contrast}
     might be impossible -- value in any given cell would automatically depend on
     values of all other cells. Instead we test numerically equivariance of broad
     range of popular activation functions and find that function Softsign
     defined as $\mathit{Softsign}(x) = \frac{x}{1+|x|}$ performs fairly well.
     Exact measurements can be found in section TODO.
 
-    Operator $\mathcal{G}$ proves to be more managable and exactly equivaraint
+    Operator $\mathcal{G}$ proves to be more manageable and exactly equivariant
     activation function can be found, though in the end it turns out to be
-    fairly obvious. If we want $f$ to be equivaraint to \ref{eq:gamma}, then in
+    fairly obvious. If we want $f$ to be equivariant to \ref{eq:gamma}, then in
     particular it needs to fulfill condition $$f\left(x^c\right) =
     f\left(x\right)^c$$
     for any $x>0$ and
     $c > 0$. To obtain analytic form of $f$
     let $$f(x_0)=y_0$$ for some constants $x_0 \neq 1$ and $y_0$.
     Then $$f\left(x_0^c\right) = y_0^c$$ Now we can treat $x_0^c$ as the argument and set
-    $x_0^c = z$, so $$f(z) = y_0^{\log_{x_0}z}$$.
+    $x_0^c = z$, so $$f(z) = y_0^{\log_{x_0}z} =
+    y_0^\frac{\log_{y_0}z}{\log_{y_0}{x_0}} = z^{\log_{x_0}{y_0}}$$
+    but $\log_{x_0}{y_0}$ is constant, so $f$ is unique power function passing
+    through $\left(x_0, y_0\right)$. For negative arguments this definition can
+    be extended either symmetrically ($f(x)=f(-x)$) or antisymmetrically ($f(-x)
+    = -f(x)$). We choose the latter option too enable negative values of
+    function After some trial and error we arrive at the final definition $$f_a(x)
+    = s(x)|x|^a$$ with $s$ representing the sign of $x$.
+    In implementation, in order to make $f$ slowly growing, we
+    choose $a=0.3$. $f_{0.3}$ is shown in the figure \ref{fig:f03}.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{f03}
+        \caption{Activation function $s(x)|x|^{0.3}$.}
+        \label{fig:f03}
+    \end{figure}
+\item Similarly to brightness, the contrast operator $\mathcal{C}$ is
+    equivariant to mean normalization and invariant to standard normalization,
+    do to build equivariant model, we need to use the first layer.
+
+    Situation is a lot more complicated with gamma correction. Due to it's
+    highly nonlinear nature, operator
+    $\mathcal{G}$ doesn't seem to be equivariant to any
+    commonly used normalization layer.
 \end{itemize}
+
 
 
 
