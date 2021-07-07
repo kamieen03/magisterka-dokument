@@ -113,11 +113,14 @@ is then the following:
 \gbw_{\epsilon}(X_c) =
     \frac{\log(X_c+\epsilon)-E[\log(X_c+\epsilon)]}{\sigma(\log(X_c+\epsilon))}
 \end{equation}
-To be precise, this small correction breaks the invariance properties,
-%TODO: exact value of error
-but fortunately the difference between the two layers is no
-bigger than $0.5\%$ (see section TODO), so we
-can treat $\gbw_{\epsilon}$ as if it was also truly invariant.
+To be precise, this small correction breaks the invariance properties.
+We can however treat $X_c+\epsilon$ as a new input of the network
+and $\gbw_{\epsilon}$ is then invariant to this new input.
+$\epsilon$ is small so $X_c$ and $X_c+\epsilon$ are very similar (or even
+indistinguishable to human eye), so they should be labeled by the network as
+belonging to the same class anyway. In implementation we use
+$\epsilon=\frac{1}{255}$ -- the smallest possible difference between pixel
+values.
 \\ Due to logarithm only being defined for positive values, we place
 $\mathit{GBW}$ layer only at the very beginning of networks. This type of models
 is marked as \{model-name\}+InGBW0.

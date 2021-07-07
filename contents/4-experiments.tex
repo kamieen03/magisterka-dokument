@@ -1,10 +1,422 @@
 \section{Experiments}
 \subsection{Experimental setup}
-    \subsubsection{Used technologies}
-    \subsubsection{Datasets}
-    \subsubsection{Models}
+Whole implementation was written in Python language using
+PyTorch, Numpy, Pillow and Torchvision libraries
+and is available at
+\url{https://github.com/kamieen03/mgr}.
+Implementation
+of B-spline GCNNs is based on original Tensorflow version from
+\cite{bekkers2019}.
+
+Implemented models were trained and tested on CIFAR-10 \cite{cifar},
+CIFAR-100 \cite{cifar} and STL-10 \cite{stl10} datasets.
+For STL-10 only the labeled part of training set was used.
+
+All implemented models are based on ResNet18 architecture \cite{resnet}.
+Every network starts with initial convolution, normalization, activation
+function and pooling layer. After that either $6$ (in CIFAR models)
+or $8$ (in STL10 models) residual bottlenecks are
+placed. Bottlenecks come in pairs, that is bottleneck no. $2k$ and no. $2k+1$
+always have the same number of channels. We use list notation to denote size of
+network, for example [$\mathit{n1}$; $\mathit{n2}$; $\mathit{n3}$]
+is CIFAR model with $2$ bottlenecks with $n1$ channels, $2$ bottlenecks with
+$n2$ channels and $2$ bottlenecks with $n3$ channels placed consecutively.
+Every network ends with
+fully-connected layer.
+
+Overall there are 3 types of models:
+\begin{itemize}
+    \item \textbf{PlainResNet} is regular ResNet as described in \cite{resnet}.
+    \item In \textbf{BsplineResNet} usual convolutional layers are replaced by
+        B-spline group convolutional layers and the first convolution is replaced
+        by lift operation. Network is parametrized by group $G$ it's supposed to be
+        equivariant to and size of B-spline basis -- $N$ in equation
+        \ref{eq:bsplines}. Model name is determined by $G$
+    \item \textbf{BResNet} resemble Plain models, but standard normalization is
+        replaced by mean normalization, so that the first couple layers are
+        equivariant to change in brightness. The exact number of equivariant
+        layers is parameter. In \textit{BrightnessEq} model all layers before
+        final fully-connected layer are equivariant. In \textit{InBk} after $k$
+        equivariant Bottlenecks, a single $CBW$ layer is placed, making the
+        model invariant to operator $\mathcal{B}$.
+\end{itemize}
+Plain and Bspline models can additionally have $\mathit{CBW}$ or $\mathit{GBW}$
+layer at the very beginning of the network. In such case `\textit{+InCBW0}' or
+`\textit{+InGBW0}' is added to their names. All architectures are detailed in
+table \ref{tab:models_stl} and \ref{tab:models_cifar}. Particular layer sizes of
+models in each table were selected in such a way to assure all of them have
+roughly the same number of parameters. TODO- ile
+
+\begin{table}[h!]
+\centering
+\begin{adjustbox}{center}
+\begin{tabular}{c|c|c|>{\centering\arraybackslash}m{4em}|
+    >{\centering\arraybackslash}m{7em}|>{\centering\arraybackslash}m{4em}}
+ \hline
+ \hline
+ Model type & Model name & Numbers of channels & Initial invariant layer & Equivariance group &
+ B-spline basis size \\
+ \hline
+ \hline
+ \multirow{3}{7em}{PlainResNet} & Plain & [80; 160; 256; 256] & --- & --- & --- \\
+     & Plain+InCBW0 & [80; 160; 256; 256] & CBW & --- & --- \\
+     & Plain+InGBW0 & [80; 160; 256; 256] & GBW & --- & --- \\
+ \hline
+ \hline
+
+ \multirow{10}{7em}{BsplineResNet} & RotEq & [32; 64; 64; 64] & --- & SO(2) & 12 \\
+     & RotEq+InCBW0 & [32; 64; 64; 64] & CBW & SO(2) & 12 \\
+     & RotEq+InGBW0 & [32; 64; 64; 64] & GBW & SO(2) & 12 \\
+     & ScaleEq & [48; 64; 100; 128] & --- & Scale group & 5 \\
+     & ScaleEq+InCBW0 & [48; 64; 100; 128] & CBW & Scale group & 5 \\
+     & ScaleEq+InGBW0 & [48; 64; 100; 128] & GBW & Scale group & 5 \\
+     & SchearEq & [48; 64; 100; 128] & --- & Schear group & 5 \\
+     & SchearEq+InCBW0 & [48; 64; 100; 128] & CBW & Schear group & 5 \\
+     & SchearEq+InGBW0 & [48; 64; 100; 128] & GBW & Schear group & 5 \\
+     & GammmaEq & [48; 64; 100; 128] & --- & Gamma group & 5 \\
+ \hline
+ \hline
+
+ \multirow{4}{7em}{BResNet} & BrightnessEq & [80; 160; 256; 256] & --- & --- & --- \\
+     & InB1 & [80; 160; 256; 256] & --- & --- & --- \\
+     & InB2 & [80; 160; 256; 256] & --- & --- & --- \\
+     & InB3 & [80; 160; 256; 256] & --- & --- & --- \\
+ \hline
+ \hline
+\end{tabular}
+\end{adjustbox}
+\caption{STL-10 models}
+\label{tab:models_stl}
+\end{table}
+
+
+
+\begin{table}[h!]
+\centering
+\begin{adjustbox}{center}
+\begin{tabular}{c|c|c|>{\centering\arraybackslash}m{4em}|
+    >{\centering\arraybackslash}m{7em}|>{\centering\arraybackslash}m{4em}}
+ \hline
+ \hline
+ Model type & Model name & Numbers of channels & Initial invariant layer & Equivariance group &
+ B-spline basis size \\
+ \hline
+ \hline
+ \multirow{3}{7em}{PlainResNet} & Plain & [80; 160; 256] & --- & --- & --- \\
+     & Plain+InCBW0 & [80; 160; 256] & CBW & --- & --- \\
+     & Plain+InGBW0 & [80; 160; 256] & GBW & --- & --- \\
+ \hline
+ \hline
+
+ \multirow{10}{7em}{BsplineResNet} & RotEq & [32; 48; 64] & --- & SO(2) & 12 \\
+     & RotEq+InCBW0 & [32; 48; 64] & CBW & SO(2) & 12 \\
+     & RotEq+InGBW0 & [32; 48; 64] & GBW & SO(2) & 12 \\
+     & ScaleEq & [64; 96; 128] & --- & Scale group & 3 \\
+     & ScaleEq+InCBW0 & [64; 96; 128] & CBW & Scale group & 3 \\
+     & ScaleEq+InGBW0 & [64; 96; 128] & GBW & Scale group & 3 \\
+     & SchearEq & [48; 72; 108] & --- & Schear group & 5 \\
+     & SchearEq+InCBW0 & [48; 72; 108] & CBW & Schear group & 5 \\
+     & SchearEq+InGBW0 & [48; 72; 108] & GBW & Schear group & 5 \\
+     & GammmaEq & [48; 72; 108] & --- & Gamma group & 5 \\
+ \hline
+ \hline
+
+ \multirow{4}{7em}{BResNet} & BrightnessEq & [80; 160; 256] & --- & --- & --- \\
+     & InB1 & [80; 160; 256] & --- & --- & --- \\
+     & InB2 & [80; 160; 256] & --- & --- & --- \\
+     & InB3 & [80; 160; 256] & --- & --- & --- \\
+ \hline
+ \hline
+\end{tabular}
+\end{adjustbox}
+\caption{CIFAR models}
+\label{tab:models_cifar}
+\end{table}
+
+\newpage
+
+
+
+
+
+
+
+
+
 
 \subsection{Image classification}
+    We begin experiments with comparison of classification accuracy of
+    individual models on all 3 datasets. For STL-10 and CIFAR-10 every network
+    is trained for 150 epochs. This number was derived from first exploratory
+    tests on STL-10, where various variants of PlainResNet had shown little to
+    no improvement after 100th epoch. Due to limited computational budget
+    CIFAR-100 models are trained for 100 epochs. Training is done using AdamW
+    optimizer \cite{adamw} with weight decay coefficient equal to $0.02$ and
+    initial learning rate set to $0.001$. Size of single mini-batch equals
+    $256$. During training, input images are first zero-padded with 2 pixels
+    on each side, cropped to original size and then flipped horizontally with
+    probability $0.5$. In CIFAR-10 experiments with color jitter augmentations
+    additional transforms of either contrast of brightness are applied.
+    In all line plots below y axis indicates classification accuracy either on
+    train or test set, while x axis enumerates epochs.
 
+    \subsubsection*{Comparison of PlainResNet with equivariant models}
+    First we compare base models -- Plain, RotEq, ScaleEq, ShearEq, GammaEq and
+    BrightnessEq. The goal of experiment is to determine whether at fixed number
+    of parameters, equivariant
+    architectures have advantage over usual ResNet model.
+
+    Looking first at
+    training runs in figure \ref{fig:plot1} Plain's performance stands out.
+    It trains the fastest of all models but this should be no surprise. After
+    all it has the greatest number of filters in each layer, so it's the most
+    prone to rapid decrease of loss and overfitting. It's especially apparent on
+    the hardest dataset --
+    CIFAR-100, where even though training accuracy continues to grow, test
+    accuracy staggers around $40$th epoch and drops gently later on.
+
+    Another interesting case is BrightnessEq. While it has no problem training
+    on CIFAR, it's performance is underwhelming on STL. At first it seemed like
+    result of particularly bad seed of network, so we've rerun the experiment
+    but behaviour was essentially the same. Either characteristic of images in
+    dataset or size their size impacts the training procedure negatively.
+
+    Analyzing plots in the test column, we see that the two best generalizing
+    models are Plain and RotEq. While Plain performs better on STL10 and
+    CIFAR10, on CIFAR100 RotEq is the only model to beat the 50\% threshold.
+    It should also be noted that again, probably due to high capacity, Plain's
+    test curves are the most unstable -- see for example 20\% dips on STL10.
+    The worst models are perhaps ScaleEq and GammaEq. On every dataset they seem
+    to end up as the last ones in terms of accuracy ranking.
+    Also even though BrightnessEq has a lot of problems training on STL10, it
+    still reaches their level in the end.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{plots/plot1/plot}
+        \caption{Comparison of classification accuracy of
+            Plain and equivariant models on all datasets. X axis indicates
+            number of epochs. Left column shows performance on training set;
+        right column on the test set.}
+        \label{fig:plot1}
+    \end{figure}
+
+    %%%%% each model vs CBW vs GBW %%%%%%%%%%%%%%%%%%%
+
+    \subsubsection*{Comparison of bare, InCBW and INGBW versions of models}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\textwidth]{plots/plot2/stl10}
+        \caption{Comparison of classification accuracy of base models and their
+            invariant versions on STL10 dataset.}
+        \label{fig:plot2stl10}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\textwidth]{plots/plot2/cifar100}
+        \caption{Comparison of classification accuracy of base models and their
+            invariant versions on CIFAR100 dataset.}
+        \label{fig:plot2cifar100}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{plots/plot2/cifar10}
+        \caption{Comparison of classification accuracy of base models and their
+            invariant versions on CIFAR10 dataset.}
+        \label{fig:plot2cifar10}
+    \end{figure}
+
+
+
+
+    %%%%%%%% brightnessEq, inb1, inb2, inb3 %%%%%%
+    \subsubsection*{Comparison of BrightnessEq, InB1, InB2 and InB3 models}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{plots/plot3/plot}
+        \caption{Comparison of classification accuracy of
+        brightness equivaraiant and invariant models.}
+        \label{fig:plot3}
+    \end{figure}
+
+    %%%%%%%%% top 5 best %%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{plots/plot5/plot}
+        \caption{Comparison of classification accuracy of
+            5 best models for each dataset.
+            Models were ranked according to maximum test set accuracy during
+            training.}
+        \label{fig:plot5}
+    \end{figure}
+
+    %%%%% jitter vs non-jitter %%%%%%%%%%
+
+    %%%%% generalizations %%%%%%%%%%%%%%%
+
+    \subsubsection*{Generalizations}
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/brightness_stl10}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar100}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar10}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Classification accuracy of each model depending on the change
+        of brightness $\mathcal{B}_a$ in input. X axis indicates value of
+        parameter $a$.}
+        \label{fig:plot4brightness}
+    \end{figure}
+
+
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/contrast_stl10}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/contrast_cifar100}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/contrast_cifar10}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Classification accuracy of each model depending on the change
+        of contrast $\mathcal{C}_c$ in input.}
+        \label{fig:plot4contrast}
+    \end{figure}
+
+
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/gamma_stl10}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/gamma_cifar100}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/gamma_cifar10}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Classification accuracy of each model depending on the change
+        of gamma $\mathcal{G}_c$ in input.}
+        \label{fig:plot4contrast}
+    \end{figure}
+
+
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/color_stl10}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/color_cifar100}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/color_cifar10}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Classification accuracy of each model depending on the change
+        of color balance $\mathcal{W}_T$ in input.}
+        \label{fig:plot4contrast}
+    \end{figure}
+
+    %%%%%% equivariance %%%%%%%%%%%%%
+
+\newpage
 \subsection{Degree of equivariance and invariance}
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/plain_brightness}
+        \end{subfigure}
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/BrightnessEq_brightness}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Equivariance error to gamma transform of Plain and BrightnessEq
+        model.}
+        \label{fig:plot7brightness}
+    \end{figure}
+
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/plain_gamma}
+        \end{subfigure}
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/GammaEq_gamma}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Equivariance error to gamma transform of Plain and GammaEq
+        model.}
+        \label{fig:plot7gamma}
+    \end{figure}
+
+    \begin{figure}[h]
+    \begin{adjustwidth}{-11em}{-11em}
+        \centering
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/plain_rotate}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/RotEq_rotate}
+        \end{subfigure}
+    \end{adjustwidth}
+        \caption{Equivariance error to rotations of Plain and RotEq
+        model.}
+        \label{fig:plot7rot}
+    \end{figure}
+
+
+    \begin{figure}[h]
+        \centering
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/plain_scale}
+        \end{subfigure}
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/ScaleEq_scale}
+        \end{subfigure}
+        \caption{Equivariance error to scaling of Plain and ScaleEq
+        model.}
+        \label{fig:plot7scale}
+    \end{figure}
+
+
+    \begin{figure}[h]
+        \centering
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/plain_shear}
+        \end{subfigure}
+        \begin{subfigure}{0.4\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/SchearEq_shear}
+        \end{subfigure}
+        \caption{Equivariance error to shear transform of Plain and ShearEq
+        model.}
+        \label{fig:plot7shear}
+    \end{figure}
+
+
+    %%%%%%%% norms %%%%%%%%%%%%
+    \subsubsection*{Gradient norms}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{plots/plot8/norms}
+        \caption{Comparison of norms of gradients flowing through individual
+            convolutional layers of PlainResNet and BResNet models.}
+        \label{fig:plot8}
+    \end{figure}
+
 
