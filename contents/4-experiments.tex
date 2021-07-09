@@ -8,9 +8,9 @@ Implementation
 of B-spline GCNNs is based on original Tensorflow version from
 \cite{bekkers2019}.
 
-Implemented models were trained and tested on CIFAR-10 \cite{cifar},
-CIFAR-100 \cite{cifar} and STL-10 \cite{stl10} datasets.
-For STL-10 only the labeled part of training set was used.
+Implemented models were trained and tested on CIFAR10 \cite{cifar},
+CIFAR100 \cite{cifar} and STL10 \cite{stl10} datasets.
+For STL10 only the labeled part of training set was used.
 
 All implemented models are based on ResNet18 architecture \cite{resnet}.
 Every network starts with initial convolution, normalization, activation
@@ -85,7 +85,7 @@ roughly the same number of parameters. TODO- ile
  \hline
 \end{tabular}
 \end{adjustbox}
-\caption{STL-10 models}
+\caption{STL10 models}
 \label{tab:models_stl}
 \end{table}
 
@@ -146,16 +146,16 @@ roughly the same number of parameters. TODO- ile
 
 \subsection{Image classification}
     We begin experiments with comparison of classification accuracy of
-    individual models on all 3 datasets. For STL-10 and CIFAR-10 every network
+    individual models on all 3 datasets. For STL10 and CIFAR10 every network
     is trained for 150 epochs. This number was derived from first exploratory
-    tests on STL-10, where various variants of PlainResNet had shown little to
+    tests on STL10, where various variants of PlainResNet had shown little to
     no improvement after 100th epoch. Due to limited computational budget
-    CIFAR-100 models are trained for 100 epochs. Training is done using AdamW
+    CIFAR100 models are trained for 100 epochs. Training is done using AdamW
     optimizer \cite{adamw} with weight decay coefficient equal to $0.02$ and
     initial learning rate set to $0.001$. Size of single mini-batch equals
     $256$. During training, input images are first zero-padded with 2 pixels
     on each side, cropped to original size and then flipped horizontally with
-    probability $0.5$. In CIFAR-10 experiments with color jitter augmentations
+    probability $0.5$. In CIFAR10 experiments with color jitter augmentations
     additional transforms of either contrast of brightness are applied.
     In all line plots below y axis indicates classification accuracy either on
     train or test set, while x axis enumerates epochs.
@@ -172,7 +172,7 @@ roughly the same number of parameters. TODO- ile
     all it has the greatest number of filters in each layer, so it's the most
     prone to rapid decrease of loss and overfitting. It's especially apparent on
     the hardest dataset --
-    CIFAR-100, where even though training accuracy continues to grow, test
+    CIFAR100, where even though training accuracy continues to grow, test
     accuracy staggers around $40$th epoch and drops gently later on.
 
     Another interesting case is BrightnessEq. While it has no problem training
@@ -203,7 +203,7 @@ roughly the same number of parameters. TODO- ile
 
     %%%%% each model vs CBW vs GBW %%%%%%%%%%%%%%%%%%%
     \clearpage
-    \subsubsection*{Comparison of bare, InCBW and INGBW versions of models}
+    \subsubsection*{Comparison of bare, InCBW and InGBW versions of models}
     We now group base models with their InCBW and InGBW versions and compare
     their classification accuracy. Figures
     \ref{fig:plot2stl10}, \ref{fig:plot2cifar100} and \ref{fig:plot2cifar10}
@@ -254,6 +254,8 @@ roughly the same number of parameters. TODO- ile
     big attention to dark pixels might be one of the factors
     negatively influencing model's accuracy.
 
+    \clearpage
+
     \begin{figure}[h!]
         \centering
         \includegraphics[width=0.85\textwidth]{plots/plot2/stl10}
@@ -270,7 +272,7 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
     \begin{figure}[h!]
         \centering
-        \includegraphics[width=\textwidth]{plots/plot2/cifar10}
+        \includegraphics[width=0.85\textwidth]{plots/plot2/cifar10}
         \caption{Comparison of classification accuracy of base models and their
             invariant versions on CIFAR10 dataset.}
         \label{fig:plot2cifar10}
@@ -280,7 +282,6 @@ roughly the same number of parameters. TODO- ile
 
 
     %%%%%%%% brightnessEq, inb1, inb3, inb5 %%%%%%
-    \clearpage
     \subsubsection*{Comparison of brightness invariant models}
     Differences between architectures invariant and
     equivariant to changes in brightness are shown in figure \ref{fig:plot3}.
@@ -348,6 +349,8 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
     %%%%%%%%% top 5 best %%%%%%%%%%%%%%%%%%%%%%%%%%
+    \clearpage
+    \subsubsection*{Comparison of top networks}
     \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot5/plot}
@@ -359,11 +362,63 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
     %%%%% jitter vs non-jitter %%%%%%%%%%
+    \clearpage
+    \subsubsection*{Effectiveness of data augmentation}
+        \begin{table}
+        \centering
+        \begin{tabular}{|c|c|c|}
+         \hline
+         Model name & No augmentation & Augmentation \\
+         \hline
+            Plain & {84.9} & {84.5} \\
+            Plain+InCBW0 & {84.0} & {84.9} \\
+            Plain+InGBW0 & {82.0} & {82.1} \\
+            RotEq & {81.5} & {81.3} \\
+            RotEq+InCBW0 & {81.0} & {80.9} \\
+            RotEq+InGBW0 & {77.9} & {79.5} \\
+            ScaleEq & {78.3} & {77.9} \\
+            ScaleEq+InCBW0 & {77.8} & {78.5} \\
+            ScaleEq+InGBW0 & {74.3} & {74.9} \\
+            SchearEq & {79.4} & {78.9} \\
+            SchearEq+InCBW0 & {78.8} & {79.3} \\
+            SchearEq+InGBW0 & {75.3} & {77.0} \\
+            GammaEq & {76.7} & {76.4} \\
+            BrightnessEq & {83.3} & {82.9} \\
+            InB1 & {84.5} & {84.5} \\
+            InB2 & {84.0} & {83.1} \\
+            InB3 & {84.2} & {83.9} \\
+         \hline
+        \end{tabular}
+        \caption{Comparison of classification accuracy on CIFAR10 with an without
+            data augmentation.}
+        \label{tab:jitter_table}
+        \end{table}
 
     %%%%% generalizations %%%%%%%%%%%%%%%
-
     \clearpage
     \subsubsection*{Generalizations}
+    Matrices in figures \ref{fig:plot4brightness}, \ref{fig:plot4contrast},
+    \ref{fig:plot4gamma} and \ref{fig:plot4color} illustrate robustness of trained
+    models to brightness, contrast, gamma and color balance transformations
+    respectively. Specifically the test part of dataset is first passed through
+    a transform, the network then classifies transformed images and accuracy of
+    prediction is measured. Matrices contain accuracies expressed in percentages.
+
+    In \ref{fig:plot4gamma} and \ref{fig:plot4color} images are converted
+    precisely according to $\mathcal{G}$ (equation \ref{eq:gamma})
+    and $\mathcal{W}$ (equation \ref{eq:color}) operators. $\mathcal{C}$
+    (eq \ref{eq:contrast})
+    and $\mathcal{B}$ (eq \ref{eq:bright}) symmetries are in turn additionally
+    clipped to $[0;1]$ range so that their results are still viewable images.
+    There's a lot of data to analyze, but conclusions mostly carry over between
+    datasets.
+
+    Starting with base Plain model we observe radical changes in brightness
+    are heavily detrimental to networks' performance, wherein darkening image
+    is more impactful. This might be consequence of clipping -- lowering
+    brightness causes mean value of input to decrease linearly, while increasing
+    causes sublinear growth. The same phenomenon occurs in case of contrast and
+    color balance changes. The network is on the other hand far more resistant
     \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
@@ -375,6 +430,9 @@ roughly the same number of parameters. TODO- ile
         \end{subfigure}
         \begin{subfigure}{0.6\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar10}
+        \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar10_jitter}
         \end{subfigure}
     \end{adjustwidth}
         \caption{Classification accuracy of each model depending on the change
@@ -396,6 +454,9 @@ roughly the same number of parameters. TODO- ile
         \begin{subfigure}{0.6\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/contrast_cifar10}
         \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/contrast_cifar10_jitter}
+        \end{subfigure}
     \end{adjustwidth}
         \caption{Classification accuracy of each model depending on the change
         of contrast $\mathcal{C}_c$ in input.}
@@ -415,10 +476,13 @@ roughly the same number of parameters. TODO- ile
         \begin{subfigure}{0.6\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/gamma_cifar10}
         \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/gamma_cifar10_jitter}
+        \end{subfigure}
     \end{adjustwidth}
         \caption{Classification accuracy of each model depending on the change
         of gamma $\mathcal{G}_c$ in input.}
-        \label{fig:plot4contrast}
+        \label{fig:plot4gamma}
     \end{figure}
 
 
@@ -434,16 +498,52 @@ roughly the same number of parameters. TODO- ile
         \begin{subfigure}{0.6\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/color_cifar10}
         \end{subfigure}
+        \begin{subfigure}{0.6\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot4/color_cifar10_jitter}
+        \end{subfigure}
     \end{adjustwidth}
         \caption{Classification accuracy of each model depending on the change
         of color balance $\mathcal{W}_T$ in input.}
-        \label{fig:plot4contrast}
+        \label{fig:plot4color}
     \end{figure}
 
     %%%%%% equivariance %%%%%%%%%%%%%
-
 \clearpage
 \subsection{Degree of equivariance and invariance}
+    \newcommand{\mcn}{\mathcal{N}}
+    \newcommand{\mct}{\mathcal{T}}
+    Now we investigate degree of equivariance present at
+    various depths of networks. While modern literature of GCNNs builds on
+    thorough theoretical framework, claims of theoretical properties are hardly
+    ever checked directly. \cite{attentive_gcnn} compares attention fields
+    produced by equivariant attention mechanism visually.
+    Of all papers cited in bibliography the only one containing numerical
+    experiments is
+    \cite{scale_steerable} where equivariance to scaling is measured.
+    We reformulate slightly the definition of relative error used in
+    \cite{scale_steerable} to make it symmetric.
+    Let $\mcn_k$ be the $k$th layer of
+    the network and $\mcn_{k:0} = \mcn_k \circ \dots \circ \mcn_0$. Then the
+    equivariance error of network $\mcn$
+    at depth $k$ with respect to transformation $\mathcal{T}$
+    and input $x$ equals
+    $$ E_{\mcn_k,\mct}(x) = 2\frac{\left|\mcn_{k:0}\left(\mct(x)\right) -
+    \mct(\mcn_{k:0}(x))\right|}
+    {\left|\mcn_{k:0}(\mct(x))\right| + \left|\mct(\mcn_{k:0}(x))\right|} $$
+    The total error is average across all images in dataset $X$:
+    $$ E_{\mcn_k,\mct} = \frac{1}{|X|}\sum_{x \in X }E_{\mcn_k,\mct}(x) $$
+    Matrices in figures
+    \ref{fig:plot7brightness},
+    \ref{fig:plot7gamma},
+    \ref{fig:plot7rot},
+    \ref{fig:plot7scale},
+    \ref{fig:plot7shear},
+    show errors measured for networks trained on CIFAR10 dataset.
+    In each pair the left matrix shows error of base Plain model and the right one
+    error of supposedly equivariant network.
+
+
+
     \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
@@ -454,7 +554,7 @@ roughly the same number of parameters. TODO- ile
             \includegraphics[width=\linewidth]{plots/plot7/BrightnessEq_brightness}
         \end{subfigure}
     \end{adjustwidth}
-        \caption{Equivariance error to gamma transform of Plain and BrightnessEq
+        \caption{Equivariance error to brightness transform of Plain and BrightnessEq
         model.}
         \label{fig:plot7brightness}
     \end{figure}
