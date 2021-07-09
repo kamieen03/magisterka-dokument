@@ -36,9 +36,9 @@ Overall there are 3 types of models:
         replaced by mean normalization, so that the first couple layers are
         equivariant to change in brightness. The exact number of equivariant
         layers is parameter. In \textit{BrightnessEq} model all layers before
-        final fully-connected layer are equivariant. In \textit{InBk} after $k$
-        equivariant Bottlenecks, a single $CBW$ layer is placed, making the
-        model invariant to operator $\mathcal{B}$.
+        final fully-connected layer are equivariant. In \textit{InBk} networks,
+        a single $CBW$ layer is placed in the $k$th Bottleneck with all earlier
+        Bottlenecks equivariant.
 \end{itemize}
 Plain and Bspline models can additionally have $\mathit{CBW}$ or $\mathit{GBW}$
 layer at the very beginning of the network. In such case `\textit{+InCBW0}' or
@@ -191,7 +191,7 @@ roughly the same number of parameters. TODO- ile
     Also even though BrightnessEq has a lot of problems training on STL10, it
     still reaches their level in the end.
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot1/plot}
         \caption{Comparison of classification accuracy of
@@ -202,23 +202,73 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
     %%%%% each model vs CBW vs GBW %%%%%%%%%%%%%%%%%%%
-
+    \clearpage
     \subsubsection*{Comparison of bare, InCBW and INGBW versions of models}
-    \begin{figure}[h]
+    We now group base models with their InCBW and InGBW versions and compare
+    their classification accuracy. Figures
+    \ref{fig:plot2stl10}, \ref{fig:plot2cifar100} and \ref{fig:plot2cifar10}
+    show experiments on STL10, CIFAR100 and CIFAR10 datasets respectively.
+
+    First thing to notice in STL10 runs is the difference between Plain models
+    and the other networks. Test plots of Plain+InCBW0 and Plain+InGBW0 seem to
+    be a lot more stable than that of bare Plain model. Their peaks and valleys have
+    way smaller magnitude.
+    InCBW performs a bit better than Plain, while InGBW
+    version a bit worse. All of this is also true for CIFAR tests.
+    Additionally on STL10, training curves indicate that Plain+InGBW0 trains slower
+    than other two,
+    though again more stable. Plots of RotEq, ScaleEq and ShearEq
+    on the other hand are extremely similar to each other. Their bare, CBW and
+    GBW versions perform basically the same, the only difference is somewhat slower
+    training of InGBW types.
+    Relative weakness of InGBW versions stands out more in CIFAR plots.
+    In every of eight subplots, they are more or less dominated by bare and InCBW
+    types. InCBW in turn performs either worse (CIFAR100) or the same (CIFAR10)
+    as bare version.\\
+    Overall using CBW layer seems mostly advantageous as it stabilizes the
+    prediction when training in low data regime and doesn't really hurt
+    performance of more restricted (Eq) models. GBW layer in turn while also
+    possessing the first quality, visibly impacts accuracy negatively. This
+    might stem from characteristic of distributions created by GBW layer or more
+    precisely by logarithm. Let $X$ be an input image.
+    If $\log\left(\frac{1}{255}\right)$ is the smallest value of $\log(X)$ and
+    $\log\left(\frac{256}{255}\right)$ is the biggest value
+    then the argument mapped halfway
+    in-between them is $$\exp\left(\frac{\log\left(\frac{1}{255}\right) +
+    \log\left(\frac{256}{255}\right)}{2}\right) =
+    \sqrt{\exp\left(\log\left(\frac{256}{255^2}\right)\right)} =
+    \sqrt{\frac{256}{255^2}} = \frac{16}{255}$$
+    Numerically
+    \begin{equation*}
         \centering
-        \includegraphics[width=0.8\textwidth]{plots/plot2/stl10}
+        \log\left(\frac{1}{255}\right) \approx −5.54
+        \hspace{2em}
+        \log\left(\frac{16}{255}\right) \approx −2.77
+        \hspace{2em}
+        \log\left(\frac{256}{255}\right) \approx 0.01
+    \end{equation*}
+    After logarithmization values are standardized but the fact remains
+    that about
+    half of unique input values are dedicated just to short interval
+    $\left[\frac{1}{255};\frac{16}{255}\right]$. This asymmetrically
+    big attention to dark pixels might be one of the factors
+    negatively influencing model's accuracy.
+
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=0.85\textwidth]{plots/plot2/stl10}
         \caption{Comparison of classification accuracy of base models and their
             invariant versions on STL10 dataset.}
         \label{fig:plot2stl10}
     \end{figure}
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
-        \includegraphics[width=0.8\textwidth]{plots/plot2/cifar100}
+        \includegraphics[width=0.85\textwidth]{plots/plot2/cifar100}
         \caption{Comparison of classification accuracy of base models and their
             invariant versions on CIFAR100 dataset.}
         \label{fig:plot2cifar100}
     \end{figure}
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot2/cifar10}
         \caption{Comparison of classification accuracy of base models and their
@@ -229,18 +279,76 @@ roughly the same number of parameters. TODO- ile
 
 
 
-    %%%%%%%% brightnessEq, inb1, inb2, inb3 %%%%%%
-    \subsubsection*{Comparison of BrightnessEq, InB1, InB2 and InB3 models}
-    \begin{figure}[h]
+    %%%%%%%% brightnessEq, inb1, inb3, inb5 %%%%%%
+    \clearpage
+    \subsubsection*{Comparison of brightness invariant models}
+    Differences between architectures invariant and
+    equivariant to changes in brightness are shown in figure \ref{fig:plot3}.
+    To be precise BrightnessEq isn't
+    exactly equivariant -- it's last fully-connected layer isn't equivariant due
+    to bias vector. In classification problem however, what's important
+    is that significant portion of the network exhibits equivariant behaviour.
+    By that logic though model InB5 should also probably called equivariant as
+    it's first $4$ residual bottlenecks are equivariant. All in all boundary
+    between invariance and equivariance in NN literature is fluid and one should
+    always pay attention what is meant by these terms. This particular is best
+    interpreted as asking whether depth at which network becomes invariant plays
+    any role. The answer to this question seems to be yes, but only if the task
+    is sufficiently hard.
+
+    Starting with the easiest CIFAR10 dataset we see test accuracy of all models
+    differs only slightly, though it's worth noting that InB1 is ahead of others
+    for most of the training time. Training curves on the other hand reveal
+    significant difference of training speed of InB1 and BrightnessEq.
+
+    In CIFAR100 experiments the differences are more pronounced. InB1 clearly
+    dominates the rest, while InB5 and BrightnessEq are the lest accurate.
+    It's test curve is becomes stable after $50$th epoch whereas InB5's doesn't.
+    Training plots confirm as well that InB1 and InB3 are able to optimize the
+    fastest.
+
+    InB5 does relatively poorly also on STL10. Curiously, skipping BrightnessEq,
+    it's the Plain model whose training curve is the most jarred
+
+    Overall InB1 network seems to slightly outperform the default Plain+InCBW0
+    model.
+    The only difference between them is availability of the
+    brightness information to the first two convolutional layers and
+    intermediate ReLU activation. This might help InB1 to differentiate between
+    classes if the interclass variation of brightness is significant. This
+    turns out to be true
+    for CIFAR100 but not really for CIFAR10 and STL10 (see figure
+    \ref{fig:plot3brightness}), which could explain big differences in
+    performance between individual networks on the first dataset.
+
+
+
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot3/plot}
         \caption{Comparison of classification accuracy of
-        brightness equivaraiant and invariant models.}
+        brightness equivariant and invariant models.}
         \label{fig:plot3}
     \end{figure}
 
+    \begin{figure}[h!]
+        \centering
+        \begin{subfigure}{0.7\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot3/cifar100_br}
+        \end{subfigure}
+        \begin{subfigure}{0.45\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot3/cifar10_br}
+        \end{subfigure}
+        \begin{subfigure}{0.45\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot3/stl10_br}
+        \end{subfigure}
+        \caption{Mean brightness of every class in CIFAR100, CIFAR10 and STL10
+            datasets as measured on test parts.}
+        \label{fig:plot3brightness}
+    \end{figure}
+
     %%%%%%%%% top 5 best %%%%%%%%%%%%%%%%%%%%%%%%%%
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot5/plot}
         \caption{Comparison of classification accuracy of
@@ -254,8 +362,9 @@ roughly the same number of parameters. TODO- ile
 
     %%%%% generalizations %%%%%%%%%%%%%%%
 
+    \clearpage
     \subsubsection*{Generalizations}
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.6\textwidth}
@@ -275,7 +384,7 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.6\textwidth}
@@ -294,7 +403,7 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.6\textwidth}
@@ -313,7 +422,7 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.6\textwidth}
@@ -333,9 +442,9 @@ roughly the same number of parameters. TODO- ile
 
     %%%%%% equivariance %%%%%%%%%%%%%
 
-\newpage
+\clearpage
 \subsection{Degree of equivariance and invariance}
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.4\textwidth}
@@ -350,7 +459,7 @@ roughly the same number of parameters. TODO- ile
         \label{fig:plot7brightness}
     \end{figure}
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.4\textwidth}
@@ -365,7 +474,7 @@ roughly the same number of parameters. TODO- ile
         \label{fig:plot7gamma}
     \end{figure}
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
         \begin{subfigure}{0.6\textwidth}
@@ -381,7 +490,7 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \begin{subfigure}{0.4\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_scale}
@@ -395,7 +504,7 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
 
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \begin{subfigure}{0.4\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_shear}
@@ -411,7 +520,7 @@ roughly the same number of parameters. TODO- ile
 
     %%%%%%%% norms %%%%%%%%%%%%
     \subsubsection*{Gradient norms}
-    \begin{figure}[h]
+    \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot8/norms}
         \caption{Comparison of norms of gradients flowing through individual
