@@ -7,7 +7,7 @@ and is available at
 Implementation
 of B-spline GCNNs is based on original Tensorflow version from
 \cite{bekkers2019}.
-
+%TODO: describe projection layer
 Implemented models were trained and tested on CIFAR10 \cite{cifar},
 CIFAR100 \cite{cifar} and STL10 \cite{stl10} datasets.
 For STL10 only the labeled part of training set was used.
@@ -176,7 +176,7 @@ roughly the same number of parameters. TODO- ile
     accuracy staggers around $40$th epoch and drops gently later on.
 
     Another interesting case is BrightnessEq. While it has no problem training
-    on CIFAR, it's performance is underwhelming on STL. At first it seemed like
+    on CIFAR, its performance is underwhelming on STL. At first it seemed like
     result of particularly bad seed of network, so we've rerun the experiment
     but behaviour was essentially the same. Either characteristic of images in
     dataset or size their size impacts the training procedure negatively.
@@ -286,11 +286,11 @@ roughly the same number of parameters. TODO- ile
     Differences between architectures invariant and
     equivariant to changes in brightness are shown in figure \ref{fig:plot3}.
     To be precise BrightnessEq isn't
-    exactly equivariant -- it's last fully-connected layer isn't equivariant due
+    exactly equivariant -- its last fully-connected layer isn't equivariant due
     to bias vector. In classification problem however, what's important
     is that significant portion of the network exhibits equivariant behaviour.
     By that logic though model InB5 should also probably called equivariant as
-    it's first $4$ residual bottlenecks are equivariant. All in all boundary
+    its first $4$ residual bottlenecks are equivariant. All in all boundary
     between invariance and equivariance in NN literature is fluid and one should
     always pay attention what is meant by these terms. This particular is best
     interpreted as asking whether depth at which network becomes invariant plays
@@ -351,6 +351,7 @@ roughly the same number of parameters. TODO- ile
     %%%%%%%%% top 5 best %%%%%%%%%%%%%%%%%%%%%%%%%%
     \clearpage
     \subsubsection*{Comparison of top networks}
+
     \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth]{plots/plot5/plot}
@@ -361,14 +362,15 @@ roughly the same number of parameters. TODO- ile
         \label{fig:plot5}
     \end{figure}
 
-    %%%%% jitter vs non-jitter %%%%%%%%%%
+    %%%%% generalizations %%%%%%%%%%%%%%%
     \clearpage
-    \subsubsection*{Effectiveness of data augmentation}
+    \subsection{Generalizations}
         \begin{table}
         \centering
         \begin{tabular}{|c|c|c|}
          \hline
-         Model name & No augmentation & Augmentation \\
+         \textbf{Model name} & \textbf{No augmentation} &
+         \textbf{Augmentation} \\
          \hline
             Plain & {84.9} & {84.5} \\
             Plain+InCBW0 & {84.0} & {84.9} \\
@@ -389,36 +391,116 @@ roughly the same number of parameters. TODO- ile
             InB3 & {84.2} & {83.9} \\
          \hline
         \end{tabular}
-        \caption{Comparison of classification accuracy on CIFAR10 with an without
+        \caption{Comparison of classification accuracy on CIFAR10 with and without
             data augmentation.}
         \label{tab:jitter_table}
         \end{table}
 
-    %%%%% generalizations %%%%%%%%%%%%%%%
-    \clearpage
-    \subsubsection*{Generalizations}
+    In this subsection we analyze effectiveness of data augmentation on accuracy
+    of models as well as degrees of generalizations to lightning transforms
+    attained by individual networks.
+    We train separate set of 17 models on CIFAR10 dataset augmented with images
+    of lowered brightness or contrast. Specifically during training,
+    before passing through the network, each image $x$
+    undergoes one of two transformations selected with equal probability:
+    \begin{itemize}
+        \item either the brightness is lowered according to
+            equation \ref{eq:bright}: $x \mapsto \mathcal{B}_a(x)$
+        \item or the contrast is lowered according to equation
+            \ref{eq:contrast_old}: $x \mapsto C_a(x)$
+    \end{itemize}
+    where factor $a$ comes from uniform probability distribution
+    $a \sim U[0.3; 1]$ and contrast operator $C_a$ is the weighted, clipped version.
+    Originally we intended for augmentations to also make increase in brightness
+    and contrast possible. However in all exploratory experiments
+    such modifications caused
+    numerical errors and gradient explosions due to very bright images being
+    present in the dataset.
+
+    Table \ref{tab:jitter_table} contains maximal test accuracies of
+    models trained with and without augmentation.
+    The test instances are unaltered.
+    We conclude there is no real difference
+    between the two sets of models. The augmented networks are not always better
+    and even when they are, their advantage is mostly less than one percent. The
+    only model which seems to benefit from augmentation is RotEq+InGBW0 where
+    the difference is $1.6\%$, but this might be just a statistical effect. Numbers
+    in the table \ref{tab:jitter_table} can be interpreted as coming
+    from some probability distributions
+    and so can their differences. The more models investigated, the higher the
+    chance, one of them will perform significantly better with augmentation. All
+    in all there is no evidence for implemented augmentation scheme enhancing
+    accuracy of prediction on unaltered test dataset.
+
+    The situation changes when we look at accuracy on transformed datasets.
     Matrices in figures \ref{fig:plot4brightness}, \ref{fig:plot4contrast},
     \ref{fig:plot4gamma} and \ref{fig:plot4color} illustrate robustness of trained
     models to brightness, contrast, gamma and color balance transformations
-    respectively. Specifically the test part of dataset is first passed through
+    respectively. Specifically the test part of relevant dataset is first passed through
     a transform, the network then classifies transformed images and accuracy of
     prediction is measured. Matrices contain accuracies expressed in percentages.
+    The dataset models have been trained on is written above each matrix;
+    ``CIFAR10 AUG'' stands for CIFAR10 with augmentation scheme described above.
 
     In \ref{fig:plot4gamma} and \ref{fig:plot4color} images are converted
     precisely according to $\mathcal{G}$ (equation \ref{eq:gamma})
     and $\mathcal{W}$ (equation \ref{eq:color}) operators. $\mathcal{C}$
-    (eq \ref{eq:contrast})
-    and $\mathcal{B}$ (eq \ref{eq:bright}) symmetries are in turn additionally
+    (equation \ref{eq:contrast})
+    and $\mathcal{B}$ (equation \ref{eq:bright}) symmetries are in turn additionally
     clipped to $[0;1]$ range so that their results are still viewable images.
     There's a lot of data to analyze, but conclusions mostly carry over between
-    datasets.
+    datasets:
 
-    Starting with base Plain model we observe radical changes in brightness
-    are heavily detrimental to networks' performance, wherein darkening image
-    is more impactful. This might be consequence of clipping -- lowering
-    brightness causes mean value of input to decrease linearly, while increasing
-    causes sublinear growth. The same phenomenon occurs in case of contrast and
-    color balance changes. The network is on the other hand far more resistant
+    \begin{itemize}
+    \item Starting with base Plain model and ignoring the AUG matrices
+        for the moment, we observe that radical changes in brightness
+        are detrimental to network's performance, where darkening image
+        is significantly
+        more impactful than brightening.
+        This might be consequence of clipping -- lowering
+        brightness causes mean value of input to decrease linearly,
+        whereas increasing
+        causes only sublinear growth. The same phenomenon occurs in case of contrast and
+        color balance changes. Bare Bspline models -- RotEq, ScaleEq, ShearEq,
+        GammaEq -- behave essentially the same, though exact accuracies
+        on the edges of matrices vary.
+        Usually of all 5 networks, Plain performs the best.
+    \item CBW and GBW layers work mostly
+        just as their theoretical
+        invariance properties suggest. Accuracy of InCBW and InGBW models
+        doesn't decrease
+        when lowering brightness and is still higher than their bare
+        counterparts' when brightness increases.
+        Invariance to color balance
+        change is perfect expect for $T=1000K$ which zeros out the blue
+        channel which causes major drop in accuracy. For contrast change, CBW
+        layer acts the same as for brightness change. Curiously the
+        GBW also provides some degree of invariance to contrast, though it's
+        not obvious from it's definition. It's
+        especially visible when contrast is lowered. Similarly accuracy of InCBW
+        models is only partially affected by gamma correction.
+    \item BrightnessEq and InB$k$ networks' accuracy doesn't change in low
+        brightness. They are also partially invariant to other transforms
+        but not as much as InCBW and InGBW models. At that InB1 performs visibly
+        better than InB2 which in turn performs better than InB3 --
+        the earlier placed the invariant layer, the better they accuracy
+        preserved.
+    \item Gamma Eq in turn performs a lot worse on heavily gamma-corrected
+        images.
+    \item Finally the data augmentation makes all the networks generalize better
+        under brightness, contrast and gamma transforms. Given the character of
+        augmentation the first two are not surprising, but the third is rather
+        surprising. The difference is quite significant -- for the
+        $\mathcal{G}_0.333$ accuracy of Plain model goes up from $57\%$ to
+        $76\%$. It's especially surprising considering that images of lowered
+        gamma appear brighter than originals, while augmentation only supports
+        lowering the brightness.
+    \item Overall analyzing the CIFAR10 AUG matrices, the very bright images
+        seem to be the most challenging group of images for all networks.
+    \end{itemize}
+
+
+
     \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
@@ -538,10 +620,45 @@ roughly the same number of parameters. TODO- ile
     \ref{fig:plot7rot},
     \ref{fig:plot7scale},
     \ref{fig:plot7shear},
-    show errors measured for networks trained on CIFAR10 dataset.
+    show errors measured for networks trained on CIFAR10 dataset and multiplied
+    by $100$ -- expressed in percentages.
     In each pair the left matrix shows error of base Plain model and the right one
-    error of supposedly equivariant network.
+    error of relevant Eq model. Labels at the bottom edge of
+    matrix indicate depth at which equivariance error was measured.
+    \textit{conv1} and \textit{lift} are the first convolutional layers,
+    \textit{norm1}, \textit{ac1} and \textit{maxpool1} are consecutive
+    normalization, activation function and pooling right after the first
+    convolution. Y axis shows factor by which input is transformed.
 
+    Overall we find errors of equivariance relatively high. The only
+    model with
+    fully equivariant layers is BrightnessEq, as it doesn't make any
+    approximations. RotEq and ScaleEq make significant errors but they are
+    visibly lower than Plain's. In the first one multiples of $90 \degree$ are
+    the most equivariant. This stems from lack of approximation in resampling
+    and borders not being present in the image explicitly. In ScaleEq
+    on the other errors are distributed very unevenly -- the network seems to
+    work better with zoomed-in pictures than with zoomed-out.
+
+    GammaEq and ShearEq in turn don't seem to be equivariant
+    at all -- its errors are the same or even worse
+    than Plain model. High errors attained by networks at first glance seem to
+    somewhat undermine sense of using such architectures.
+    However
+    in subsequent experiments we find that precise value of errors
+    depends heavily on details of architecture -- size of convolution
+    kernels, stride, padding, etc. For each individual model errors can
+    be decreased by large margin with these hyperparameters picked
+    optimally. Such construction however would cause all models to have different
+    architectures, sometimes even different number of layers.
+    This in
+    turn would render fair comparison of large number of networks within
+    a single experiment questionable.
+    In conclusion Lie GCNNs based on Bsplines, lifting and group
+    convolution mechanisms
+    can be made mostly equivariant with errors in deeper layers within $\approx
+    30\%$ level but each architecture should be adjusted individually in
+    accordance to transformation group.
 
 
     \begin{figure}[h!]
@@ -622,7 +739,15 @@ roughly the same number of parameters. TODO- ile
     \subsubsection*{Gradient norms}
     \begin{figure}[h!]
         \centering
-        \includegraphics[width=\textwidth]{plots/plot8/norms}
+        \begin{subfigure}{0.7\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot8/stl10_norms}
+        \end{subfigure}
+        \begin{subfigure}{0.7\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot8/cifar100_norms}
+        \end{subfigure}
+        \begin{subfigure}{0.7\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot8/cifar10_norms}
+        \end{subfigure}
         \caption{Comparison of norms of gradients flowing through individual
             convolutional layers of PlainResNet and BResNet models.}
         \label{fig:plot8}

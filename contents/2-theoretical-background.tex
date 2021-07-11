@@ -15,7 +15,7 @@
     \end{enumerate}
     \par Group $G$ might also posses additional structure. A \textbf{topological group}
         is a group together with a topology on the underlying set,
-        such that it's binary operation:\\
+        such that its binary operation:\\
         $$\bullet: G \times G \to G, \hspace*{1em} \left(g,h \right) \mapsto g\bullet h$$
         and inversion map: \\
         $${}^{-1}: G \to G, \hspace*{1em} g \mapsto g^{-1}$$
@@ -28,8 +28,9 @@
         Every Lie group $G$ has an associated structure $\mathfrak{g}$ called \textbf{Lie
         algebra}. For our purposes we can treat it as a real vector space
         $\mathbb{R}^n$ where $n$ equals the dimension of $G$ as manifold. The
-        connection between group and it's Lie algebra is established through two
-        maps. \textbf{Log} is a function from $G$ to $\mathfrak{g}$ and \textbf{Exp} is it's inverse
+        connection between group and its Lie algebra is established through two
+        maps. \textbf{Log} is a function from $G$ to $\mathfrak{g}$ and \textbf{Exp}
+        is its inverse
         mapping elements of $\mathfrak{g}$ to elements of $G$.
 
 
@@ -104,7 +105,7 @@
         Intuitively equivariance tells us that when input changes, the output changes accordingly
         and invariance -- that action of G has no effect on output.\par
             If we want to construct a neural network $\mathcal{N}$ equivariant to some
-        specified group action, we need to make sure each of it's layers is equivariant.
+        specified group action, we need to make sure each of its layers is equivariant.
         If we treat $\mathcal{N}$ as a series of functions $f_0,f_1,...,f_n$, then
         \begin{align*}
             \mathcal{N}(g \cdot x) &=
@@ -121,7 +122,7 @@
         we need to break equivariance at some point. Like for example in classification,
         where final layers are often fully connected and not equivariant. \par
         The easiest way to assert the network is invariant to some transformation
-        is making it's very first layer $f_0$ invariant:
+        is making its very first layer $f_0$ invariant:
         \begin{align*}
             \mathcal{N}(g\cdot x)
             &= f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x)  \\
@@ -218,7 +219,7 @@
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.7\textwidth]{p4m_rot}
-        \caption{Feature map of p4m-equivariant GCNN and it's rotation by $r$.}
+        \caption{Feature map of p4m-equivariant GCNN and its rotation by $r$.}
         \label{fig:p4m_rot}
     \end{figure}
 
@@ -311,7 +312,7 @@
     All the works mentioned so far specify explicitly and precisely the
     transformations the network is supposed to be equivariant to. In
     \cite{augerino} on the other hand kind of transformation is stated, but the
-    network has to learn it's extent on it's own during usual training
+    network has to learn its extent on its own during usual training
     procedure, e.g. model should be equivariant to rotations from
     $\left[-\theta;\theta\right]$ interval but parameter $\theta$ is to be learned from
     data alone.
@@ -347,7 +348,7 @@
     measure of group $G$ which makes the integration possible. However given
     the discrete nature of input signals, this integral also needs to be
     discretized and turned into a sum. This is achieved by sampling elements from $G$
-    according to it's Haar measure and computing sum over them:
+    according to its Haar measure and computing sum over them:
     \begin{equation}
         (Kf)(g) = \frac{1}{N} \sum_{i=1}^N K(g^{-1}h_i)f(h_i)
         \label{eq:lie_sum}
@@ -384,7 +385,7 @@
         c_i B\left(\frac{\text{Log } g_i^{-1}g}{S}\right)
         \label{eq:bsplines}
     \end{equation}
-    where Log is the logarithmic map from $G$ to it's Lie algebra and $c_i$ are
+    where Log is the logarithmic map from $G$ to its Lie algebra and $c_i$ are
     learnable parameters. Each B-spline is
     centered around some element $g_i$ and is scaled by scalar constant $S$. Note that
     $\text{Log } g_i^{-1}g$ is really a vector $\mathbf{x}$ in $\mathbb{R}^n$,
@@ -420,7 +421,8 @@
     \subsubsection{Contrast}
     \newcommand\mcc{\mathcal{C}}
         Though notion of contrast has many different definitions and variations,
-        one popular formula \cite{torch_contrast, tf_contrast} for it's adjustment by factor of $a$ is
+        one popular formula \cite{torch_contrast, tf_contrast}
+        for its adjustment by factor of $a$ is
         \begin{equation}
             \label{eq:contrast_old}
         C_a(X) = \mathit{CLIP}\left(a\cdot X + (1-a) \cdot E\left[ \frac{w_1X_r
@@ -441,7 +443,7 @@
         choose to generalize the definition by replacing weighted average with
         usual average. The second problem is clipping values. Working only with
         values in range $\left[0;1\right]$ at all times would make training a
-        neural network a lot harder and perhaps significantly diminish it's
+        neural network a lot harder and perhaps significantly diminish its
         performance. To avoid these effects we entirely give up on clipping
         values.  The final formula for changing contrast is following:
         \begin{equation}
@@ -546,8 +548,8 @@
         \end{equation}
         Again omitting the clipping, the brightness change operator is defined simply as
         \begin{equation}
-            \label{eq:bright}
             \mathcal{B}_a(x) = ax
+            \label{eq:bright}
         \end{equation}
         All properties characterising the $\mcc$ operators listed above
         are also true for the set $\mathcal{B} = \{\mathcal{B}_a | a>0 \}$.
@@ -693,7 +695,7 @@
             \label{eq:gamma}
         \end{equation}
         where $s(X)$ is a tensor of the same shape as $X$ containing
-        signs of it's entries and $|X|$ contains absolute values of entries.
+        signs of its entries and $|X|$ contains absolute values of entries.
         Exponentiation is again computed entrywise. This way we separate signs
         and magnitudes.
         \par Unlike the three previous operators, $\mathcal{G}_a$ is nonlinear --
@@ -743,7 +745,7 @@
             \centering
             \includegraphics[width=\textwidth]{rotations}
             \caption{Difference between rotation with and without border
-                expansion. Left column shows the original image and it's
+                expansion. Left column shows the original image and its
                 rotation by 90\degree. In middle column image is first rotated
                 by 45\degree with expansion, then rotated again and cropped to
                 original size. In the right column picture is simply rotated

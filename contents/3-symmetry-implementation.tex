@@ -72,7 +72,7 @@ gamma:
     \label{eq:GBW}
 \end{equation}
 where $\log(X)$ is entrywise logarithm of $X$. The base of the
-logarithm is not very important -- invariant behaviour doesn't depend on it's value.
+logarithm is not very important -- invariant behaviour doesn't depend on its value.
 Now let us assume that we're given an image -- $3\times H \times W$ tensor --
 with strictly positive values..
 Operators $\mathcal{G}$, $\mathcal{B}$ and $\mathcal{W}$ act on it entrywise, so
@@ -217,7 +217,7 @@ unnecessary repetition of computation. Therefore it's obligatory to transform th
 kernels in some other way consistent with equations of lifting and convolution.
 We implement such mechanism using the transformations from transformation group.
 That is if we want the layer to be equivariant with respect to
-$\mathcal{G}_c$, then it's kernel $K$ assumes values at gamma level $c$ equal to
+$\mathcal{G}_c$, then its kernel $K$ assumes values at gamma level $c$ equal to
 base kernel gamma-corrected by factor of $c$:
 \begin{equation}
     K(g) = K(x,c) = \mathcal{G}_c(K(x,0))
@@ -263,7 +263,7 @@ base kernel gamma-corrected by factor of $c$:
     equivariant to mean normalization and invariant to standard normalization,
     so to build an equivariant model, we need to use the mean normalization.
 
-    Situation is a lot more complicated with gamma correction. Due to it's
+    Situation is a lot more complicated with gamma correction. Due to its
     highly nonlinear nature, operator
     $\mathcal{G}$ doesn't seem to be equivariant to any
     commonly used normalization layer. We test models with and without
