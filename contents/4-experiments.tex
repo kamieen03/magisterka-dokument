@@ -1,13 +1,12 @@
 \section{Experiments}
 \subsection{Experimental setup}
-Whole implementation was written in Python language using
+The implementation was written in Python language using
 PyTorch, Numpy, Pillow and Torchvision libraries
 and is available at
 \url{https://github.com/kamieen03/mgr}.
 Implementation
 of B-spline GCNNs is based on original Tensorflow version from
 \cite{bekkers2019}.
-%TODO: describe projection layer
 Implemented models were trained and tested on CIFAR10 \cite{cifar},
 CIFAR100 \cite{cifar} and STL10 \cite{stl10} datasets.
 For STL10 only the labeled part of training set was used.
@@ -21,8 +20,7 @@ always have the same number of channels. We use list notation to denote size of
 network, for example [$\mathit{n1}$; $\mathit{n2}$; $\mathit{n3}$]
 is CIFAR model with $2$ bottlenecks with $n1$ channels, $2$ bottlenecks with
 $n2$ channels and $2$ bottlenecks with $n3$ channels placed consecutively.
-Every network ends with
-fully-connected layer.
+Every network ends with fully-connected layer.
 
 Overall there are 3 types of models:
 \begin{itemize}
@@ -35,17 +33,18 @@ Overall there are 3 types of models:
     \item \textbf{BResNet} resemble Plain models, but standard normalization is
         replaced by mean normalization, so that the first couple layers are
         equivariant to change in brightness. The exact number of equivariant
-        layers is parameter. In \textit{BrightnessEq} model all layers before
+        layers is hyperparameter. In \textit{BrightnessEq} model all layers before
         final fully-connected layer are equivariant. In \textit{InBk} networks,
-        a single $CBW$ layer is placed in the $k$th Bottleneck with all earlier
-        Bottlenecks equivariant.
+        a single $\mathit{CBW}$ layer is placed in the first Bottleneck of $k$th pair
+        with all earlier Bottlenecks equivariant.
 \end{itemize}
 Plain and Bspline models can additionally have $\mathit{CBW}$ or $\mathit{GBW}$
-layer at the very beginning of the network. In such case `\textit{+InCBW0}' or
-`\textit{+InGBW0}' is added to their names. All architectures are detailed in
+layer at the very beginning of the network. In such case ``\textit{+InCBW0}'' or
+``\textit{+InGBW0}'' is added to their names. All architectures are detailed in
 table \ref{tab:models_stl} and \ref{tab:models_cifar}. Particular layer sizes of
 models in each table were selected in such a way to assure all of them have
-roughly the same number of parameters. TODO- ile
+roughly the same number of trainable parameters. For CIFAR models it's
+$3\,200\,000$ while for STL10 about $5\,700\,000$.
 
 \begin{table}[h!]
 \centering
@@ -145,6 +144,7 @@ roughly the same number of parameters. TODO- ile
 
 
 \subsection{Image classification}
+    \label{sec:img_cl}
     We begin experiments with comparison of classification accuracy of
     individual models on all 3 datasets. For STL10 and CIFAR10 every network
     is trained for 150 epochs. This number was derived from first exploratory
@@ -321,6 +321,8 @@ roughly the same number of parameters. TODO- ile
     for CIFAR100 but not really for CIFAR10 and STL10 (see figure
     \ref{fig:plot3brightness}), which could explain big differences in
     performance between individual networks on the first dataset.
+    Comparison of 5 most accurate networks for each dataset is shown in figure
+    \ref{fig:plot5}.
 
 
 
@@ -334,13 +336,13 @@ roughly the same number of parameters. TODO- ile
 
     \begin{figure}[h!]
         \centering
-        \begin{subfigure}{0.7\textwidth}
+        \begin{subfigure}{0.8\textwidth}
             \includegraphics[width=\linewidth]{plots/plot3/cifar100_br}
         \end{subfigure}
-        \begin{subfigure}{0.45\textwidth}
+        \begin{subfigure}{0.8\textwidth}
             \includegraphics[width=\linewidth]{plots/plot3/cifar10_br}
         \end{subfigure}
-        \begin{subfigure}{0.45\textwidth}
+        \begin{subfigure}{0.8\textwidth}
             \includegraphics[width=\linewidth]{plots/plot3/stl10_br}
         \end{subfigure}
         \caption{Mean brightness of every class in CIFAR100, CIFAR10 and STL10
@@ -349,8 +351,6 @@ roughly the same number of parameters. TODO- ile
     \end{figure}
 
     %%%%%%%%% top 5 best %%%%%%%%%%%%%%%%%%%%%%%%%%
-    \clearpage
-    \subsubsection*{Comparison of top networks}
 
     \begin{figure}[h!]
         \centering
@@ -495,25 +495,25 @@ roughly the same number of parameters. TODO- ile
         $76\%$. It's especially surprising considering that images of lowered
         gamma appear brighter than originals, while augmentation only supports
         lowering the brightness.
-    \item Overall analyzing the CIFAR10 AUG matrices, the very bright images
-        seem to be the most challenging group of images for all networks.
+    \item Overall analyzing the CIFAR10 AUG matrices, very bright images
+        seem to be the most challenging group of instances for all networks.
     \end{itemize}
 
 
 
     \begin{figure}[h!]
-    \begin{adjustwidth}{-11em}{-11em}
+    \begin{adjustwidth}{-5em}{-5em}
         \centering
-        \begin{subfigure}{0.6\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/brightness_stl10}
         \end{subfigure}
-        \begin{subfigure}{0.6\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar100}
         \end{subfigure}
-        \begin{subfigure}{0.6\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar10}
         \end{subfigure}
-        \begin{subfigure}{0.6\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot4/brightness_cifar10_jitter}
         \end{subfigure}
     \end{adjustwidth}
@@ -592,6 +592,7 @@ roughly the same number of parameters. TODO- ile
     %%%%%% equivariance %%%%%%%%%%%%%
 \clearpage
 \subsection{Degree of equivariance and invariance}
+    \label{sec:exp_eq}
     \newcommand{\mcn}{\mathcal{N}}
     \newcommand{\mct}{\mathcal{T}}
     Now we investigate degree of equivariance present at
@@ -645,7 +646,8 @@ roughly the same number of parameters. TODO- ile
     than Plain model. High errors attained by networks at first glance seem to
     somewhat undermine sense of using such architectures.
     However
-    in subsequent experiments we find that precise value of errors
+    in subsequent experiments we find that for geometric Eq models
+    precise value of errors
     depends heavily on details of architecture -- size of convolution
     kernels, stride, padding, etc. For each individual model errors can
     be decreased by large margin with these hyperparameters picked
@@ -660,14 +662,28 @@ roughly the same number of parameters. TODO- ile
     30\%$ level but each architecture should be adjusted individually in
     accordance to transformation group.
 
+    Regarding invariance, its error for layer $\mathcal{L}$
+    and transformation $\mathcal{T}$ is defined as
+    $$ E_{\mathcal{L},\mathcal{T}}(x) = 2\frac{\left|\mathcal{L}\left(\mct(x)\right) -
+    \mathcal{L}(x)\right|}
+    {\left|\mathcal{L}(\mct(x))\right| + \left|\mathcal{L}(x)\right|} $$
+    and again total error is average over whole dataset.
+    Plots in figure \ref{fog:plot7inv} show error curves of CBW and GBW layers.
+    Again brightness and contrast transformations are clipped to $[0;1]$ range.
+    It's worth noting that even though accuracy of InGBW models doesn't change
+    under gamma transforms, the invariance error of GBW layer to change in gamma
+    gets as high as $30\%$. Plots also reveal why GBW generalizes so well under
+    change of contrast and CBW under change of gamma -- the error curve of the
+    first one seems to be bounded at the level of $60\%$, while the second grows
+    rather gently.
 
     \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.6\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_brightness}
         \end{subfigure}
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.6\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/BrightnessEq_brightness}
         \end{subfigure}
     \end{adjustwidth}
@@ -679,10 +695,10 @@ roughly the same number of parameters. TODO- ile
     \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_gamma}
         \end{subfigure}
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/GammaEq_gamma}
         \end{subfigure}
     \end{adjustwidth}
@@ -694,10 +710,10 @@ roughly the same number of parameters. TODO- ile
     \begin{figure}[h!]
     \begin{adjustwidth}{-11em}{-11em}
         \centering
-        \begin{subfigure}{0.6\textwidth}
+        \begin{subfigure}{0.55\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_rotate}
         \end{subfigure}
-        \begin{subfigure}{0.6\textwidth}
+        \begin{subfigure}{0.55\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/RotEq_rotate}
         \end{subfigure}
     \end{adjustwidth}
@@ -708,13 +724,15 @@ roughly the same number of parameters. TODO- ile
 
 
     \begin{figure}[h!]
+    \begin{adjustwidth}{-11em}{-11em}
         \centering
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_scale}
         \end{subfigure}
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.5\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/ScaleEq_scale}
         \end{subfigure}
+    \end{adjustwidth}
         \caption{Equivariance error to scaling of Plain and ScaleEq
         model.}
         \label{fig:plot7scale}
@@ -722,35 +740,30 @@ roughly the same number of parameters. TODO- ile
 
 
     \begin{figure}[h!]
+    \begin{adjustwidth}{-11em}{-11em}
         \centering
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.55\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/plain_shear}
         \end{subfigure}
-        \begin{subfigure}{0.4\textwidth}
+        \begin{subfigure}{0.55\textwidth}
             \includegraphics[width=\linewidth]{plots/plot7/SchearEq_shear}
         \end{subfigure}
+    \end{adjustwidth}
         \caption{Equivariance error to shear transform of Plain and ShearEq
         model.}
         \label{fig:plot7shear}
     \end{figure}
 
 
-    %%%%%%%% norms %%%%%%%%%%%%
-    \subsubsection*{Gradient norms}
     \begin{figure}[h!]
-        \centering
-        \begin{subfigure}{0.7\textwidth}
-            \includegraphics[width=\linewidth]{plots/plot8/stl10_norms}
+    \centering
+        \begin{subfigure}{\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/cbw_in}
         \end{subfigure}
-        \begin{subfigure}{0.7\textwidth}
-            \includegraphics[width=\linewidth]{plots/plot8/cifar100_norms}
+        \begin{subfigure}{\textwidth}
+            \includegraphics[width=\linewidth]{plots/plot7/gbw_in}
         \end{subfigure}
-        \begin{subfigure}{0.7\textwidth}
-            \includegraphics[width=\linewidth]{plots/plot8/cifar10_norms}
-        \end{subfigure}
-        \caption{Comparison of norms of gradients flowing through individual
-            convolutional layers of PlainResNet and BResNet models.}
-        \label{fig:plot8}
+        \caption{Invariance error to brightness, gamma and contrast
+            transformations of CBW and GBW layers.}
+        \label{fig:plot7inv}
     \end{figure}
-
-

@@ -1,0 +1,69 @@
+\section{Conclusions \& future work}
+Regarding the main objectives of this work we come to the following conclusions:
+\begin{itemize}
+    \item In general networks equivariant
+        to lightning-related transformations are for now hard to
+        construct. The theoretical framework used in contemporary works doesn't
+        fit very well with non-geometric symmetries. Even when it can be adapted
+        in some way, it still makes heavy approximations, as lightning-like transforms
+        tend to have structure of noncompact groups -- either
+        $(\mathbb{R},+)$ or $(\mathbb{R}_+, \times)$.
+    \item The only exception from this rule seem to be very simple
+        transformations like brightness and perhaps some of its
+        possible generalizations similar to color balance.
+        Networks equivariant to these symmetries can be
+        after some minor modifications
+        realized relatively easily with traditional deep learning components.
+    \item When speaking of lightning symmetries,
+        using invariant layers either as the first layer of network or
+        if possible after a
+        couple equivariant layers seems to be the better choice:
+        \begin{itemize}
+            \item They can be relatively easily found for many mathematically
+                nontrivial transformations. While precise algorithm involving
+                differential equations might be in general hard to construct,
+                invariant layers seem to be built easily by alternating
+                in some way one of standard forms of normalization.
+            \item They are preferable from computational point of view
+                as they don't require any memory. Computational overhead is also
+                bound just to single layer instead of being spread out across
+                whole network which eases optimization.
+            \item For typical computer vision tasks like detection, segmentation
+                or classification, it's the invariance that's required, not
+                equivariance. In case of detection we don't really care how
+                e.g. bright the output image is, as long as the bounding boxes
+                are in the right places. And in case of classification or
+                segmentation there isn't any output brightness to speak of.
+        \end{itemize}
+    \item This stands in sharp contrast with geometric transforms. In their case
+        constructing invariant layers placed at the beginning of network would require
+        solving yet another computer vision problem. For example in case of
+        rotations it would mean detecting relevant objects and estimating their
+        rotation with respect to the ground or some other relevant object.
+    \item While the evidence for any of tested invariant layers increasing
+        accuracy on test part of datasets is vague at
+        best, they without a doubt help generalize to out of distribution
+        instances. Even though their numerically measured invariance errors are
+        significant, experiments show accuracy is unchanged under various
+        transformations. Though the layers are not exactly invariant, they
+        perhaps still preserve overall structure of signals which aids
+        generalization.
+    \item In the same way contrast and brightness augmentation don't seem to
+        make any difference on base test dataset, but clearly help generalize.
+        Augmentation is worth applying even when invariant layers are used.
+\end{itemize}
+
+Possible future work includes:
+\begin{itemize}
+    \item Exploring different transformations, like for example many types of
+        possible contrast definitions.
+    \item Devising algorithm for finding layers invariant to given group of
+        transformations either based on its analytic description or numerical
+        data.
+    \item Designing broader equivariance and invariance measures taking into
+        account structure preservation instead of just simple relative distances.
+    \item Deriving analytic expressions of errors made by GBW layer for contrast
+        changes and by CBW layer for gamma changes.
+    \item With regard to geometric Lie GCNNs investigating more closely influence
+        of network's architecture details on degree of equivariance is needed.
+\end{itemize}

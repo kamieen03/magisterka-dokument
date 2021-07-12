@@ -34,7 +34,8 @@
     contents/1-introduction,
     contents/2-theoretical-background,
     contents/3-symmetry-implementation,
-    contents/4-experiments
+    contents/4-experiments,
+    contents/5-conclusions
 }
 
 \listfiles
@@ -73,23 +74,12 @@ FACULTY OF COMPUTING AND TELECOMMUNICATIONS \\
 % Front matter starts here
 \cleardoublepage%
 
-%--------------------------------------
-% Dedication page
-%--------------------------------------
-
-\thispagestyle{empty}
-\vspace*{\fill}%
-\vspace{17cm}
-\begin{flushright}
-\textit{Dedication page}
-\end{flushright}
-\vfill\cleardoublepage%
 
 % -- table of contents --
 \tableofcontents
 \thispagestyle{empty}
 
-\cleardoublepage % Zaczynamy od nieparzystej strony
+\cleardoublepage
 \pagenumbering{arabic}
 
 % --- Main Document --- --- --- --- --- --- ---
@@ -98,6 +88,7 @@ FACULTY OF COMPUTING AND TELECOMMUNICATIONS \\
 \include{contents/2-theoretical-background}
 \include{contents/3-symmetry-implementation}
 \include{contents/4-experiments}
+\include{contents/5-conclusions}
 
 % -- bibliography --
 \printbibliography

@@ -20,7 +20,7 @@ and color balance changes.
 Instance normalization layer $\mathit{CBW}$ transforms each channel
 $X_c$ of image $X$ by:
 $$ \mathit{CBW}(X_c) = \frac{X_c-E[X_c]}{\sigma(X_c)} $$
-where $E[X_c]$ is mean value of $X_c$.
+where $E[X_c]$ is mean value of $X_c$ and $\sigma$ is its standard deviation.
 Each instance in batch is normalized separately.
 \textit{CBW} is invariant to changes in contrast $\mcc$:
 \begin{align*}
@@ -39,8 +39,8 @@ Similarly for brightness changes $\mathcal{B}$:
     &= \frac{X_c-E[X_c]}{\sigma(X_c)} \\
     &= \mathit{CBW}(X_c)
 \end{align*}
-Whereas color balance changes $\mathcal{W}$ act on individual channels by simple
-scaling so:
+Color balance changes $\mathcal{W}$ act on individual channels in the same way
+$\mathcal{B}$ does so:
 \begin{align*}
     \mathit{CBW}(\mathcal{W}_T(X)_c) &=
     \frac{T_cX_c - E\left[T_cX_c\right]}{\sigma(T_cX_c)} = \\
@@ -60,8 +60,8 @@ we focus on contrast and brightness. In the next section \ref{sec:equ_models} we
 present variants of common layers like convolution or pooling equivariant to
 these transformations. We use these components to construct invariant networks
 denoted InB1, InB2, InB3. Numbers again refer to
-placement of the $\mathit{CBW}$ layer -- in InB$k$ the invariant layer is placed
-after ResNet's $k$th BasicBlock.
+placement of the $\mathit{CBW}$ layer -- the higher the number, the deeper
+invariant layer is placed.
 
 \subsubsection{GBW Layer}
 Just like $\cbw$ layer is invariant to changes in contrast,
@@ -72,7 +72,8 @@ gamma:
     \label{eq:GBW}
 \end{equation}
 where $\log(X)$ is entrywise logarithm of $X$. The base of the
-logarithm is not very important -- invariant behaviour doesn't depend on its value.
+logarithm is not very important -- invariant behaviour doesn't depend on its
+value; in implementation we use base $e$.
 Now let us assume that we're given an image -- $3\times H \times W$ tensor --
 with strictly positive values..
 Operators $\mathcal{G}$, $\mathcal{B}$ and $\mathcal{W}$ act on it entrywise, so
@@ -124,6 +125,12 @@ values.
 \\ Due to logarithm only being defined for positive values, we place
 $\mathit{GBW}$ layer only at the very beginning of networks. This type of models
 is marked as \{model-name\}+InGBW0.
+In order to prevent division by $0$ in case of constant channels, it's necessary
+to add another small constant to denominator -- we use value $10^{-6}$. We do
+the same in case of $\mathit{CBW}$ layer. These approximations also cause loss of
+strict invariance, but again, values are very small so behaviour of the layer
+doesn't change that much. Precise error values are discussed in section
+\ref{sec:exp_eq}.
 
 
 
@@ -168,14 +175,16 @@ normalization fulfill this condition:
         numerator through any nonlinear function, e.g. square root.
         Therefore if we want the normalization to zero
         out mean value of input, we must divide by a constant. This might have
-        adverse effect on network's training since there is no mechanism to keep
+        adverse effect on training procedure as there is no mechanism to keep
         values flowing through the network bounded, which might easily result in
-        gradient explosion. We compare norms of gradients in {\color{red}TODO}.
+        gradient explosion. In experiments in section \ref{sec:img_cl} we find
+        the training on one of datasets indeed deteriorates, but numerical errors
+        don't occur.
 \end{itemize}
 And so using common components with standard normalization scheme replaced by
 mean normalization we can build model equivariant to brightness changes
 $\mathcal{B}$. In
-experiments refer to this type of architecture as Brightness-Eq.
+experiments refer to this type of architecture as BrightnessEq.
 
 \subsubsection{Lie GCNN equivariant models}
 For geometric transformations, we implement Lie GCNN
@@ -194,7 +203,7 @@ We now consider remaining lightning symmetries $\mathcal{C}$ and $\mathcal{G}$.
 Es expected, they are not
 as well-behaved as $\mathcal{B}$. While MaxPooling is also equivariant to them,
 the rest
-of described above layers isn't (see experiments in section TODO).
+of described above layers isn't (see experiments in section \ref{sec:exp_eq}).
 For the rest of this section we construct suitable
 convolutional layers similar to those of Lie
 GCNNs (section \ref{sec:lie_gcnn}),
@@ -222,6 +231,7 @@ base kernel gamma-corrected by factor of $c$:
 \begin{equation}
     K(g) = K(x,c) = \mathcal{G}_c(K(x,0))
 \end{equation}
+where $g$ is represented as a pair (spatial location, gamma level).
 
 \item Because of aggregation of global mean of tensor in contrast equation \ref{eq:contrast},
     designing a nontrivial pointwise activation function equivariant to
@@ -230,7 +240,6 @@ base kernel gamma-corrected by factor of $c$:
     values of all other cells. Instead we test numerically equivariance of broad
     range of popular activation functions and find that function Softsign
     defined as $\mathit{Softsign}(x) = \frac{x}{1+|x|}$ performs fairly well.
-    Exact measurements can be found in section TODO.
 
     Operator $\mathcal{G}$ proves to be more manageable and exactly equivariant
     activation function can be found, though in the end it turns out to be
@@ -252,6 +261,9 @@ base kernel gamma-corrected by factor of $c$:
     = s(x)|x|^a$$ with $s$ representing the sign of $x$.
     In implementation, in order to make $f$ slowly increasing, we
     choose $a=0.3$. $f_{0.3}$ is shown in the figure \ref{fig:f03}.
+    Unfortunately such activation function always leads to gradient explosion
+    after processing from $2$ to $20$ data batches. In consequence also in this
+    case we use \textit{Softsign} function.
 
     \begin{figure}[h]
         \centering
@@ -267,13 +279,6 @@ base kernel gamma-corrected by factor of $c$:
     highly nonlinear nature, operator
     $\mathcal{G}$ doesn't seem to be equivariant to any
     commonly used normalization layer. We test models with and without
-    BatchNormalization and compare their equivariance degrees and various stages
-    in the network.
+    BatchNormalization and compare their accuracies and equivariance degrees.
 \end{itemize}
-
-
-
-
-
-
 

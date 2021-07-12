@@ -1,6 +1,8 @@
 \section{Theoretical background}
 
 \subsection{Group theory}
+    Modern literature regarding equivariant neural networks is based heavily on
+    group theory. We start with review of its basic notions.
     \textbf{Group} $G$ is a set together with binary operation $\left(G, \bullet \right)$ satisfying
     following axioms:
     \begin{enumerate}
@@ -46,8 +48,8 @@
         Bijective homomorphism is called \textbf{isomorphism}.\\
 
         In this work we are mainly interested in groups in context of their actions
-        on 3D tensors. Given a group $G$ and set $X$ we define a
-        \textbf{group action} of $G$ on $X$ as a function
+        on 3D tensors. Given a group $G$ and set $X$,
+        \textbf{group action} of $G$ on $X$ is defined as a function
         \begin{equation}
             \theta: G \times X \to X
         \end{equation}
@@ -91,22 +93,23 @@
     \hspace{0.5cm}
      Key properties of neural networks in regard to group actions are equivariance and invariance.
         These can be abstractly defined as follows: \par
-        Let group $G$ act on sets $X$ and $Y$. We call function $f: X \rightarrow Y$ equivariant
+        Let group $G$ act on sets $X$ and $Y$. We call function $f: X \rightarrow Y$
+        \textbf{equivariant}
         with respect to action of $G$ if for all $g \in G$ and $x \in X$
         \begin{equation}
             f(g \cdot x) = g \cdot f(x)
         \end{equation}
-        In turn, we call $f$ invariant with respect to action of $G$ if
+        In turn, we call $f$ \textbf{invariant} with respect to action of $G$ if
         \begin{equation}
             f(g \cdot x) = f(x)
         \end{equation}
         In fact invariance is a special case of equivariance where action of $G$ on $Y$ is trivial.
         It's however conceptually cleaner to make distinction between both properties.
         Intuitively equivariance tells us that when input changes, the output changes accordingly
-        and invariance -- that action of G has no effect on output.\par
+        and invariance -- that action of $G$ has no effect on output.\par
             If we want to construct a neural network $\mathcal{N}$ equivariant to some
         specified group action, we need to make sure each of its layers is equivariant.
-        If we treat $\mathcal{N}$ as a series of functions $f_0,f_1,...,f_n$, then
+        If we treat $\mathcal{N}$ as a series of functions $f_0,f_1,...,f_n$ then
         \begin{align*}
             \mathcal{N}(g \cdot x) &=
             f_n \circ f_{n-1} \circ \cdots \circ f_1 \circ f_0(g\cdot x)  \\
@@ -117,7 +120,8 @@
         \end{align*}
         where $g\cdot x$ is the action of $g$ on $x$. Often we don't want the network
         to be fully equivariant; the desired extent of equivariance depends on the task.
-        For problems of image-to-image type like segmentation full equivariance is desirable.
+        For problems of image-to-image type like segmentation full equivariance
+        to transformations like rotation or translation is desirable.
         However for problems where the input data gets more and more ``squished'' in consecutive layers,
         we need to break equivariance at some point. Like for example in classification,
         where final layers are often fully connected and not equivariant. \par
@@ -155,7 +159,7 @@
             equivariant outside of image's borders. The border effects can to
             some extent be fixed by padding image with values present in the
             border or their averages.
-        \item Max pooling layer is locally invariant -- that is small translations don't
+        \item MaxPooling layer is locally invariant -- that is small translations don't
             affect the layer's output, but translations which are multiplicities
             of window's size cause equivariant behaviour.
             In average pooling local behaviour is more
@@ -213,17 +217,19 @@
             $90 \degree$ counterclockwise -- $r\cdot F$ in the sense of equation
             \ref{eq:action_on_function}. Note that every submap follows the
             red arrow as well as gets rotated. This stems from the structure of
-            $p4$ group.}
+            $p4$ group. Taken from \cite{cohen2016}.}
         \label{fig:p4_rot}
     \end{figure}
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.7\textwidth]{p4m_rot}
-        \caption{Feature map of p4m-equivariant GCNN and its rotation by $r$.}
+        \caption{Feature map of p4m-equivariant GCNN and its rotation by $r$.
+                    Taken from \cite{cohen2016}.}
         \label{fig:p4m_rot}
     \end{figure}
 
-    \textbf{Lift} operation is a particular kind of convolution
+    \textbf{Lift} operation is a particular kind of convolution also proposed in
+    \cite{cohen2016}
     that transforms usual function stack $f$ on $\mathbb{Z}^2$ into
     function stack $F$ on group $G$. Computationally it takes as input
     usual 3d tensor (channel, height, width) and produces
@@ -242,6 +248,12 @@
         F(g) = (f\star\psi^i)(g) = \sum_{y\in G}\sum_{c=1}^C
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
+    Near the end of the network signals are back again projected to original
+    dimensionality by a single \textbf{projection layer}. This layer acts like
+    pooling but on the previously added group dimension and not the spatial
+    dimensions. Depending on implementation it computes either sum, mean or
+    maximal value. In this work we use max.
+
     While in equation \ref{eq:cnn} computation is done by sliding
     $y$ on $\mathbb{Z}^2$, in equation \ref{eq:gcnn} it's replaced by more
     general iteration on all group elements. If we replace $G$ by $\mathbb{Z}^2$
@@ -297,7 +309,7 @@
     instead of computing distance between two rotation matrices directly, it
     suffices to compute the difference between the vectors corresponding to
     these matrices in the Lie algebra. \cite{lieconv} and \cite{bekkers2019} are
-    described more closely in the next section \ref{sec:lie_cnn}.
+    described more closely in the next section \ref{sec:lie_gcnn}.
 
     \cite{lie_transformer, attentive_gcnn, coattentive} add attention mechanisms
     and ensure they are also equivariant with respect to chosen group of
@@ -307,7 +319,7 @@
     transformations and use circulant attention matrices to make them
     equivariant to rotations. All of these architectures require unfortunately a
     lot of memory -- one of models constructed for CIFAR10 dataset in
-    \cite{attentive_gcnn} needs 72GBs of RAM.
+    \cite{attentive_gcnn} uses 72GBs of RAM.
 
     All the works mentioned so far specify explicitly and precisely the
     transformations the network is supposed to be equivariant to. In
@@ -361,7 +373,7 @@
     differ significantly is
     the method by which convolutional kernels are constructed. Equation
     \ref{eq:lie_integral} implies that kernels must have values defined for all
-    elements of group $G$. This requirement thankfully doesn't hold in practice
+    elements of group $G$. This requirement doesn't hold in practice
     due to discretization so we could potentially model kernels as tensors just
     like in
     regular GCNNs. Such representation however causes increase
@@ -455,7 +467,6 @@
         transformation.  While it remains more or less unchanged for values of
         $a$ close to $1$, differences grow as me move further away from identity
         transformation.
-        % TODO: plot of difference between original definition and the adopted definition
 
         This operator possesses a number of interesting properties:
         \begin{itemize}
@@ -583,11 +594,6 @@
             $B_a$.}
         \label{fig:brightness_pics}
         \end{figure}
-
-
-        %TODO: insert the plot of mean value of transformed image depending on change
-        % brightness
-
 
 
 
