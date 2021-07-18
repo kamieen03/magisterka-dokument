@@ -12,6 +12,8 @@ CIFAR100 \cite{cifar} and STL10 \cite{stl10} datasets.
 For STL10 only the labeled part of training set was used.
 
 All implemented models are based on ResNet18 architecture \cite{resnet}.
+\WK{Please expand on ResNet18: number of layers (18?), what are the ``bottlenecks'' (a set of three (?) layers, with the smaller one in the middle), etc. You can
+include a picture from the resnet paper (with source indicated) if fits to your architecture choice.}
 Every network starts with initial convolution, normalization, activation
 function and pooling layer. After that either $6$ (in CIFAR models)
 or $8$ (in STL10 models) residual bottlenecks are
@@ -31,7 +33,7 @@ Overall there are 3 types of models:
         equivariant to and size of B-spline basis -- $N$ in equation
         \ref{eq:bsplines}. Model name is determined by $G$
     \item \textbf{BResNet} resemble Plain models, but standard normalization is
-        replaced by mean normalization, so that the first couple layers are
+        replaced by mean normalization \WK{what is mean normalization?}, so that the first couple layers are
         equivariant to change in brightness. The exact number of equivariant
         layers is hyperparameter. In \textit{BrightnessEq} model all layers before
         final fully-connected layer are equivariant. In \textit{InBk} networks,
@@ -613,6 +615,7 @@ $3\,200\,000$ while for STL10 about $5\,700\,000$.
     $$ E_{\mcn_k,\mct}(x) = 2\frac{\left|\mcn_{k:0}\left(\mct(x)\right) -
     \mct(\mcn_{k:0}(x))\right|}
     {\left|\mcn_{k:0}(\mct(x))\right| + \left|\mct(\mcn_{k:0}(x))\right|} $$
+    \WK{How do you average over the outputs at $k$-th layer (I mean -- the network has a lot of outputs at some particular layer)?}
     The total error is average across all images in dataset $X$:
     $$ E_{\mcn_k,\mct} = \frac{1}{|X|}\sum_{x \in X }E_{\mcn_k,\mct}(x) $$
     Matrices in figures

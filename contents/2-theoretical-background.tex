@@ -1,6 +1,7 @@
 \section{Theoretical background}
 
 \subsection{Group theory}
+\WK{At least one good reference is needed in this chapter -- a book (or books) on group theory or some manual from the web}
     Modern literature regarding equivariant neural networks is based heavily on
     group theory. We start with review of its basic notions.
     \textbf{Group} $G$ is a set together with binary operation $\left(G, \bullet \right)$ satisfying
@@ -150,7 +151,7 @@
 \subsection{Equivariant neural networks}
     \subsubsection{GCNN}
     The primary example of equivariant neural networks are convolutional neural
-    networks which are (roughly) equivariant to translations. The $4$ basic
+    networks which are (roughly) equivariant to translations. The \WK{four} basic
     components of CNN are convolutional layers, pooling layers, normalization
     layers and activation functions.  These common building blocks are approximately
     equivariant to translations:
@@ -240,7 +241,7 @@
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
     Note that $g^{-1}y$ is an element of $G$, so filters have values defined on
-    the group.
+    the group. \WK{I don't get it: $y \in \mathbb{Z}^2$, so $y \notin G$, right? Should it be a group action on elements of $\mathbb{Z}^2$? Similar problem with the next equation below: now $f_c(y)$ is taken at $y \in G$, while $f_c$ is defined over $\mathbb{Z}^2$. I think there is some inconsistency here\ldots OK, I finally figured it out after reading Cohen et al. :), the first equation applies to the first layer where filters are still defined on $\mathbb{Z}^2$, while in the subsequent layers the filters are defined over $G$. Please expand a bit as it is somewhat misleading.}
     Once the input tensor is lifted, in consecutive convolutional layers it
     undergoes \textbf{group convolutions}:
     \begin{equation}
