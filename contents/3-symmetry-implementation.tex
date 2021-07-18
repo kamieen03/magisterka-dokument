@@ -174,7 +174,14 @@ normalization fulfill this condition:
         will break equivariance. For the same reason, we can't pass the
         numerator through any nonlinear function, e.g. square root.
         Therefore if we want the normalization to zero
-        out mean value of input, we must divide by a constant. This might have
+        out mean value of input, we must divide by a constant, e.g. $1$.
+        In implementation we use mean normalization layer
+        \begin{equation}
+            \mathit{MN}(X) = X - E[X]
+            \label{eq:mn}
+        \end{equation}
+        Lack of division by standard deviation or some other dispersion metric
+        might have an
         adverse effect on training procedure as there is no mechanism to keep
         values flowing through the network bounded, which might easily result in
         gradient explosion. In experiments in section \ref{sec:img_cl} we find

@@ -1,9 +1,8 @@
 \section{Theoretical background}
 
 \subsection{Group theory}
-\WK{At least one good reference is needed in this chapter -- a book (or books) on group theory or some manual from the web}
     Modern literature regarding equivariant neural networks is based heavily on
-    group theory. We start with review of its basic notions.
+    group theory \cite{algebra}. We start with review of its basic notions.
     \textbf{Group} $G$ is a set together with binary operation $\left(G, \bullet \right)$ satisfying
     following axioms:
     \begin{enumerate}
@@ -24,7 +23,8 @@
         $${}^{-1}: G \to G, \hspace*{1em} g \mapsto g^{-1}$$
         are continuous. Additionally if the underlying topological structure
         is some smooth n-manifold and both maps are smooth, the group is called
-        \textbf{Lie group}. Familiar examples of Lie groups include translation group
+        \textbf{Lie group} \cite{lee_manifolds}.
+        Familiar examples of Lie groups include translation group
         $\left( \mathbb{R}^n, + \right)$ - set of real vectors with addition or
         $\left(GL(n,\mathbb{R}), \cdot \right)$ - set of real $n \times n$ matrices of nonzero determinant
         with multiplication.\\
@@ -151,7 +151,7 @@
 \subsection{Equivariant neural networks}
     \subsubsection{GCNN}
     The primary example of equivariant neural networks are convolutional neural
-    networks which are (roughly) equivariant to translations. The \WK{four} basic
+    networks which are (roughly) equivariant to translations. The four basic
     components of CNN are convolutional layers, pooling layers, normalization
     layers and activation functions.  These common building blocks are approximately
     equivariant to translations:
@@ -197,16 +197,20 @@
     lifting tensors the network operates on to higher dimensions.
     Just like traditionally the last two
     dimensions encode height and width, these new dimensions can
-    encode information about the chosen group of transformations. Higher
+    encode information about additional transformations. Higher
     dimensional tensors are then thought of as stacks of functions
     $F:G\to\mathbb{R}^C$, where $G$ is the group of transformations.
+    $G$ is always a group of translations plus some set of other symmetries,
+    e.g. rotations or scaling.
     Pictures \ref{fig:p4_rot} and \ref{fig:p4m_rot} show
     feature maps for $p4$ -- group of translations and rotations and for
     $p4m$ -- group of
     translations, rotations and reflections.
     Convolutional filters of respective GCNNs are shaped in the same way
     but their heights and widths are smaller (typically $3\times3$ or $5\times5$
-    just like in normal CNNs).
+    just like in normal CNNs). On architectural level transition from CNN to
+    GCNN is achieved by replacing the first convolutional layer with lift
+    operation and the subsequent convolutions with group convolutional layers.
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.7\textwidth]{p4_rot}
@@ -240,9 +244,13 @@
         \mathit{Lift}(f)(g) = F(g) = (f\star\psi^i)(g) = \sum_{y\in \mathbb{Z}^2}\sum_{c=1}^C
         f_c(y)\psi_{c}^{i}(g^{-1}y)
     \end{equation}
-    Note that $g^{-1}y$ is an element of $G$, so filters have values defined on
-    the group. \WK{I don't get it: $y \in \mathbb{Z}^2$, so $y \notin G$, right? Should it be a group action on elements of $\mathbb{Z}^2$? Similar problem with the next equation below: now $f_c(y)$ is taken at $y \in G$, while $f_c$ is defined over $\mathbb{Z}^2$. I think there is some inconsistency here\ldots OK, I finally figured it out after reading Cohen et al. :), the first equation applies to the first layer where filters are still defined on $\mathbb{Z}^2$, while in the subsequent layers the filters are defined over $G$. Please expand a bit as it is somewhat misleading.}
-    Once the input tensor is lifted, in consecutive convolutional layers it
+    Note that we are iterating $y$ over $\mathbb{Z}^2$ but
+    since $\mathbb{Z}^2$ is the translation part (subgroup) of $G$,
+    $y$ is also an element of $G$ and so is
+    $g^{-1}y$. As a consequence filters have values defined on
+    the group.
+    Once the input tensor is lifted, it assumes values on $G$
+    and in consecutive convolutional layers it
     undergoes \textbf{group convolutions}:
     \begin{equation}
         \label{eq:gcnn}
